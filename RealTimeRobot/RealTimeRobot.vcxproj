@@ -75,8 +75,8 @@
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <LinkIncremental>true</LinkIncremental>
-    <IncludePath>$(VC_IncludePath);$(WindowsSDK_IncludePath);C:\Program Files\PCL 1.8.0\3rdParty\Boost\include\boost-1_61;C:\Program Files\PCL 1.8.0\3rdParty\Eigen\eigen3;C:\Program Files\PCL 1.8.0\3rdParty\FLANN\include\flann;C:\Program Files\PCL 1.8.0\3rdParty\OpenNI2\Include;C:\Program Files\PCL 1.8.0\3rdParty\Qhull\include;C:\Program Files\PCL 1.8.0\3rdParty\VTK\include\vtk-7.0;C:\Program Files\PCL 1.8.0\include\pcl-1.8</IncludePath>
-    <LibraryPath>$(VC_LibraryPath_x64);$(WindowsSDK_LibraryPath_x64);$(NETFXKitsDir)Lib\um\x64;C:\Program Files\PCL 1.8.0\lib;C:\Program Files\PCL 1.8.0\3rdParty\Boost\lib;C:\Program Files\PCL 1.8.0\3rdParty\FLANN\lib;C:\Program Files\PCL 1.8.0\3rdParty\OpenNI2\Lib;C:\Program Files\PCL 1.8.0\3rdParty\Qhull\lib;C:\Program Files\PCL 1.8.0\3rdParty\VTK\lib</LibraryPath>
+    <IncludePath>E:\PCL 1.8.0\3rdParty\Qhull\include;E:\PCL 1.8.0\3rdParty\FLANN\include;E:\PCL 1.8.0\3rdParty\VTK\include\vtk-7.0;E:\PCL 1.8.0\3rdParty\Eigen\eigen3;E:\PCL 1.8.0\include;E:\PCL 1.8.0\3rdParty\Boost\include\boost-1_61;$(IncludePath)</IncludePath>
+    <LibraryPath>$(VC_LibraryPath_x64);$(WindowsSDK_LibraryPath_x64);$(NETFXKitsDir)Lib\um\x64;E:\PCL 1.8.0\lib;E:\PCL 1.8.0\3rdParty\Boost\lib;E:\PCL 1.8.0\3rdParty\FLANN\lib;E:\PCL 1.8.0\3rdParty\OpenNI2\Lib;E:\PCL 1.8.0\3rdParty\Qhull\lib;E:\PCL 1.8.0\3rdParty\VTK\lib</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <LinkIncremental>false</LinkIncremental>
@@ -154,6 +154,9 @@
     <Text Include="ReadMe.txt" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="feature.h" />
+    <ClInclude Include="model_point.h" />
+    <ClInclude Include="scan_point.h" />
     <ClInclude Include="stdafx.h" />
     <ClInclude Include="targetver.h" />
   </ItemGroup>
