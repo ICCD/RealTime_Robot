@@ -21,6 +21,7 @@ int main()
 	while (true){
 		o--;
 	}
+	std::cout << "aa" << std::endl;
     return 0;
 }
 
