@@ -27,6 +27,12 @@ public:
 			void getOccupiedGrid(*ScanPoint, pcl::PointXYZ, &OccupiedGrid);
 			pcl::PointXYZ getKeypoint(*ScanPoint);
 			vector<vector<vector<double>>> vector3D(Surface S);
+			class ScanFeature {
+			public:
+				void getOccupiedGrid(*ModelPoint, pcl::PointXYZ, &OccupiedGrid);
+				int surfaceArea keypointArea(pcl::PointXYZ);
+				vector<vector<vector<vector<vector<vector<double>>>>>> get6Dvector(pcl::PointXYZ);
+			};
 	};
 	bool byHeight();
 	bool byArea();

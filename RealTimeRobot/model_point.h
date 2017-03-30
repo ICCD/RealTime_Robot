@@ -28,6 +28,14 @@ public:
 			pcl::PointXYZ getKeypoint(*ModelPoint);
 			float[][][] TSDF(*ModelPoint, Border[6]);
 			vector<vector<vector<double>>> vector3D(Surface S);
+			class ModelFeature {
+			public:
+				void getOccupiedGrid(*ModelPoint, pcl::PointXYZ, &OccupiedGrid);
+				float[][][] TSDF(*ModelPoint, Border[6]);
+				int surfaceArea keypointArea(pcl::PointXYZ);
+				vector<vector<vector<vector<vector<vector<double>>>>>> get6Dvector(pcl::PointXYZ);
+
+			};
 	};
 	bool byHeight();
 	bool byArea();
