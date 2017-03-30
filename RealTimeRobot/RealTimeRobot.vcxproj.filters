@@ -24,6 +24,15 @@
     <ClInclude Include="targetver.h">
       <Filter>头文件</Filter>
     </ClInclude>
+    <ClInclude Include="feature.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="model_point.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="scan_point.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="stdafx.cpp">
