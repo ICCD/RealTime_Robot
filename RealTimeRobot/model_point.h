@@ -11,6 +11,10 @@
 #include <pcl/segmentation/sac_segmentation.h>
 #include <pcl/surface/concave_hull.h>
 #include <pcl/filters/extract_indices.h>
+#include <pcl/visualization/pcl_visualizer.h>
+#include <cstdlib>
+#include <pcl/keypoints/harris_3D.h>
+
 using namespace Eigen;
 using namespace Eigen::internal;
 using namespace Eigen::Architecture;
@@ -24,7 +28,7 @@ struct Surface {														//面
 };
 
 struct OccupiedGrid {
-	pcl::PointCloud<pcl::PointXYZ> modelpoint;//点云   是否与ModelPoint *Modelpoint 等价？
+	pcl::PointCloud<pcl::PointXYZ>::Ptr Mpoint;//点云   是否与ModelPoint *Modelpoint 等价？
 	float Border[6];                           //边界
 	int Number;                               //网格中点的个数
 };
@@ -35,7 +39,6 @@ public:
 	OccupiedGrid Occupiedgrid;
 	void getOccupiedGrid(ModelPoint *Mpoint, pcl::PointCloud<pcl::PointXYZ>::Ptr point, OccupiedGrid &);//得到占据网格函数 参数列表：指向模型点云的指针，关键点坐标，占据网格引用。
 	pcl::PointCloud<pcl::PointXYZ>::Ptr getKeypoint(ModelPoint *Mpoint); //提取关键点函数 参数列表：指向模型点云的指针 返回值 ：关键点坐标数组
-
 	float*** TSDF(ModelPoint *Mpoint, float Border[6]);                  //TSDF距离场 参数列表：指向模型点云的指针，边界
 	vector<vector<vector<double>>> vector3D(Surface S);  //三维向量
 														 //关键点面片大小，6D vector？
@@ -48,20 +51,48 @@ class ModelPoint                                                          //模型
 public:
 	pcl::PointCloud<pcl::PointXYZ>::Ptr Mpoint;						     //点云指针
 	vector<Surface>	surface;											//存放分割好的面的信息
-
-
-
-	void getArea(pcl::PointCloud<pcl::PointXYZ>::Ptr Mpoint, vector<Surface> &surface);	   //三维向量表示面积大小
-
-
-
-
+    void getArea(pcl::PointCloud<pcl::PointXYZ>::Ptr Mpoint, vector<Surface> &surface);	   //三维向量表示面积大小
 	bool byHeight();                                           //待定
 	bool byArea();                                              //待定
 	bool byOccupied();                                          //待定
 
 };
+/*关键点提取函数 输入指向点云的指针，输出关键点坐标集合*/
+pcl::PointCloud<pcl::PointXYZ>::Ptr getKeypoint(pcl::PointCloud<pcl::PointXYZ>::Ptr Mpoint)
+{
+	boost::shared_ptr<pcl::visualization::PCLVisualizer> viewer(new pcl::visualization::PCLVisualizer);
+	viewer->addPointCloud(Mpoint, "all_cloud");
+	pcl::PointCloud<pcl::PointXYZI>::Ptr cloud_out(new pcl::PointCloud<pcl::PointXYZI>);
+	pcl::HarrisKeypoint3D<pcl::PointXYZ, pcl::PointXYZI, pcl::Normal> harris;
+	harris.setInputCloud(Mpoint);
+	harris.setNonMaxSupression(true);
+	harris.setRadius(0.04f);
+	harris.setThreshold(0.0012f);
+	cloud_out->height = 1;
+	cloud_out->width = 100;
+	cloud_out->resize(cloud_out->height*Mpoint->width);
+	cloud_out->clear();
+	harris.compute(*cloud_out);
+	int size = cloud_out->size();
 
+	pcl::PointCloud<pcl::PointXYZ>::Ptr cloud_harris(new pcl::PointCloud<pcl::PointXYZ>);
+	cloud_harris->height = 1;
+	cloud_harris->width = 100;
+	cloud_harris->resize(cloud_out->height*Mpoint->width);
+	cloud_harris->clear();
+
+	pcl::PointXYZ point;
+	for (int i = 0; i<size; i++)
+	{
+		point.x = cloud_out->at(i).x;
+		point.y = cloud_out->at(i).y;
+		point.z = cloud_out->at(i).z;
+		cloud_harris->push_back(point);
+	}
+	return cloud_harris;
+}
+
+//李坤
 void ModelPoint::getArea(pcl::PointCloud<pcl::PointXYZ>::Ptr modelPoint, vector<Surface> &surface)								//分割面
 {
 	pcl::PointCloud<pcl::PointXYZ>::Ptr cloud_filtered(new pcl::PointCloud<pcl::PointXYZ>);	//原始点云
@@ -69,7 +100,7 @@ void ModelPoint::getArea(pcl::PointCloud<pcl::PointXYZ>::Ptr modelPoint, vector<
 	pcl::PointCloud<pcl::PointXYZ>::Ptr cloud_p(new pcl::PointCloud<pcl::PointXYZ>);		//每次分割出的点云
 	pcl::PointCloud<pcl::PointXYZ>::Ptr cloud_f(new pcl::PointCloud<pcl::PointXYZ>);		//分割后剩下的点云
 
-	pcl::ModelCoefficients::Ptr coefficients(new pcl::ModelCoefficients());
+	pcl::ModelCoefficients::Ptr Coefficients(new pcl::ModelCoefficients());
 	pcl::PointIndices::Ptr inliers(new pcl::PointIndices());
 	// 创建分割对象
 	pcl::SACSegmentation<pcl::PointXYZ> seg;
@@ -89,7 +120,7 @@ void ModelPoint::getArea(pcl::PointCloud<pcl::PointXYZ>::Ptr modelPoint, vector<
 	{
 		// 从余下的点云中分割最大平面组成部分
 		seg.setInputCloud(cloud_filtered);
-		seg.segment(*inliers, *coefficients);
+		seg.segment(*inliers, *Coefficients);
 		if (inliers->indices.size() == 0)
 		{
 			std::cerr << "Could not estimate a planar model for the given dataset." << std::endl;
