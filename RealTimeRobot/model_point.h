@@ -36,6 +36,7 @@ getDistance(float v1, float v2, float v3, float v4, pcl::PointXYZ point)
 
 
 
+
 struct Surface {														//分割面类
 	double Area;			//面积
 	pcl::ModelCoefficients Coefficients;			//面的参数		
@@ -43,9 +44,9 @@ struct Surface {														//分割面类
 };
 
 struct OccupiedGrid {
-	pcl::PointCloud<pcl::PointXYZ>::Ptr cloud;//点云   是否与ModelPoint *Modelpoint 等价？
-	float Border[6];                           //边界
-	int Number;                               //有点的体素的个数		占据比由此筛选
+	pcl::PointCloud<pcl::PointXYZ>::Ptr cloud;//点云 
+	//float Border[6];                           //边界
+	int Number;                               //占据网格中有点的体素的个数		占据比由此筛选
 };
 
 
@@ -53,19 +54,20 @@ class KeyPoint {														//关键点信息类
 public:
 	OccupiedGrid Occupiedgrid;			//占据网格
 	pcl::PointXYZ Key_coordinate;		//占据网格中关键点坐标
-	vector<double> vector3D;  //三维向量		都需初始化为0.04
-	float grid_value[12][12][12];
+	
+
+	float grid_value[12][12][12];		//向量场
 	float Border[6];		//tsdf的边界 ，并非占据网格边界
 
 	void getOccupiedGrid(pcl::PointCloud<pcl::PointXYZ>::Ptr cloud, OccupiedGrid &Occupiedgrid,float resolution=0.02f,float f_adjust=0.08f);//得到占据网格函数 参数列表：指向模型点云的指针，关键点坐标，占据网格引用。resolution 和f_adjust分别代表分辨率和占据网格边长一半
 
 	void get_TSDF(pcl::PointCloud<pcl::PointXYZ>::Ptr cloud, float resolution = 0.02f, float f_adjust = 0.12f);                  //TSDF距离场 参数列表：指向模型点云的指针，边界
-	void get_Vector3D(vector<Surface> &surface, vector<double> &vector3D);					//获取三维向量
+	void get_Vector3D(vector<Surface> &surface);					//获取三维向量，即三个面的大小		
 
 
 };
 
-void KeyPoint::get_Vector3D(vector<Surface> &surface, vector<double> &vector3D)					//获取三维向量			目前简单实现
+void KeyPoint::get_Vector3D(vector<Surface> &surface)					//获取三维向量			目前简单实现
 {
 	int vertical = 0, horizontal = 0;
 	for (int i = 0; i < surface.size(); i++)
@@ -231,7 +233,9 @@ public:
 	pcl::PointCloud<pcl::PointXYZ> key_coordinates;						//所有关键点坐标
 	vector<KeyPoint> keyPoint;											//关键点集合
 
-	void getArea(pcl::PointCloud<pcl::PointXYZ>::Ptr Mpoint, vector<Surface> &surface);	   //三维向量表示面积大小
+
+	//方法
+	void getArea(pcl::PointCloud<pcl::PointXYZ>::Ptr modelPoint, vector<Surface> &surface);	   //三维向量表示面积大小
 	pcl::PointCloud<pcl::PointXYZ> getKeypoint(pcl::PointCloud<pcl::PointXYZ>::Ptr Mpoint); //提取关键点函数 参数列表：指向模型点云的指针 返回值 ：关键点坐标数组
 																							
 
@@ -277,7 +281,7 @@ pcl::PointCloud<pcl::PointXYZ> ModelPoint::getKeypoint(pcl::PointCloud<pcl::Poin
 void ModelPoint::getArea(pcl::PointCloud<pcl::PointXYZ>::Ptr modelPoint, vector<Surface> &surface)								//分割面
 {
 	pcl::PointCloud<pcl::PointXYZ>::Ptr cloud_filtered(new pcl::PointCloud<pcl::PointXYZ>);	//原始点云
-	pcl::copyPointCloud（*modelPoint, *cloud_filtered);
+	pcl::copyPointCloud(*modelPoint, *cloud_filtered);
 	pcl::PointCloud<pcl::PointXYZ>::Ptr cloud_p(new pcl::PointCloud<pcl::PointXYZ>);		//每次分割出的点云
 	pcl::PointCloud<pcl::PointXYZ>::Ptr cloud_f(new pcl::PointCloud<pcl::PointXYZ>);		//分割后剩下的点云
 
@@ -325,7 +329,7 @@ void ModelPoint::getArea(pcl::PointCloud<pcl::PointXYZ>::Ptr modelPoint, vector<
 		Surface s_temp;
 		s_temp.Area = chull.getTotalArea();		//得到面积
 		s_temp.Coefficients = *Coefficients;
-		if()
+		if()							//判断垂直面或者水平面
 		surface.push_back(s_temp);
 
 

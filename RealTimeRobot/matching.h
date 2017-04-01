@@ -17,8 +17,8 @@ float get_Distance(float*** grid_value, pcl::PointCloud<pcl::PointXYZ>::Ptr& clo
 {
 	/*
 	参数列表说明：
-	grid_value为距离场
-	cloud 为扫描点云占据网格中的点
+	grid_value为距离场 12*12*12
+	cloud 为扫描点云一个关键点的占据网格中的点
 	p1_key 为模型中一个关键点坐标
 	p2_key 为扫描点云中一个关键点坐标
 	min_x到max_z为tsdf的边界 即border中的6个值
@@ -38,6 +38,7 @@ float get_Distance(float*** grid_value, pcl::PointCloud<pcl::PointXYZ>::Ptr& clo
 
 	float theta = M_PI / 18; // The angle of rotation in radians
 
+	int best_theta = 0;
 	for (int i = 0; i < 36; i++)
 	{
 		//先旋转-
@@ -76,10 +77,16 @@ float get_Distance(float*** grid_value, pcl::PointCloud<pcl::PointXYZ>::Ptr& clo
 		}
 		distance_temp /= (pointGrid.size() - 1);
 		if (distance_total < distance_temp)
+		{
 			distance_total = distance_temp;
+			best_theta = (i + 1)*theta;			//根据循环中的i确定旋转角度
+		}
+			
 
 	}
 
 	return distance_total;
 }
+
+
 
