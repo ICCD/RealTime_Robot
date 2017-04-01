@@ -75,7 +75,7 @@
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <LinkIncremental>true</LinkIncremental>
-    <IncludePath>%PCL_ROOT%\3rdParty\Qhull\include;%PCL_ROOT%\3rdParty\FLANN\include;%PCL_ROOT%\3rdParty\VTK\include\vtk-7.0;%PCL_ROOT%\3rdParty\Eigen\eigen3;%PCL_ROOT%\include;%PCL_ROOT%\3rdParty\Boost\include\boost-1_61;$(IncludePath)</IncludePath>
+    <IncludePath>%PCL_ROOT%\3rdParty\Qhull\include;%PCL_ROOT%\3rdParty\FLANN\include;%PCL_ROOT%\3rdParty\VTK\include\vtk-7.0;%PCL_ROOT%\3rdParty\Eigen\eigen3;%PCL_ROOT%\include;%PCL_ROOT%\3rdParty\Boost\include\boost-1_61;$(SolutionDir)\RealTimeRobot;$(IncludePath)</IncludePath>
     <LibraryPath>$(VC_LibraryPath_x64);$(WindowsSDK_LibraryPath_x64);$(NETFXKitsDir)Lib\um\x64;%PCL_ROOT%\lib;%PCL_ROOT%\3rdParty\Boost\lib;%PCL_ROOT%\3rdParty\FLANN\lib;%PCL_ROOT%\3rdParty\OpenNI2\Lib;%PCL_ROOT%\3rdParty\Qhull\lib;%PCL_ROOT%\3rdParty\VTK\lib</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
