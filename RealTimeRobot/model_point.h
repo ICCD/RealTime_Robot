@@ -21,28 +21,35 @@ using namespace Eigen::Architecture;
 using namespace std;
 using namespace pcl;
 
-struct Surface {														//面
+struct Surface {														//分割面类
 	double Area;			//面积
-	pcl::ModelCoefficients Coefficients;			//面的参数
-	bool IsVertical;		//垂直面值为1，水平面为0
+	pcl::ModelCoefficients Coefficients;			//面的参数		
+	bool IsVertical;		//垂直面值为1，水平面为0		暂时不用于匹配
 };
 
 struct OccupiedGrid {
-	pcl::PointCloud<pcl::PointXYZ>::Ptr Mpoint;//点云   是否与ModelPoint *Modelpoint 等价？
+	pcl::PointCloud<pcl::PointXYZ> Mpoint;//点云   是否与ModelPoint *Modelpoint 等价？
 	float Border[6];                           //边界
 	int Number;                               //网格中点的个数
 };
 
 
-class KeyPoint {
+class KeyPoint {														//关键点信息类
 public:
-	OccupiedGrid Occupiedgrid;
-	void getOccupiedGrid(ModelPoint *Mpoint, pcl::PointCloud<pcl::PointXYZ>::Ptr point, OccupiedGrid &);//得到占据网格函数 参数列表：指向模型点云的指针，关键点坐标，占据网格引用。
-	pcl::PointCloud<pcl::PointXYZ>::Ptr getKeypoint(ModelPoint *Mpoint); //提取关键点函数 参数列表：指向模型点云的指针 返回值 ：关键点坐标数组
-	float*** TSDF(ModelPoint *Mpoint, float Border[6]);                  //TSDF距离场 参数列表：指向模型点云的指针，边界
-	vector<vector<vector<double>>> vector3D(Surface S);  //三维向量
-														 //关键点面片大小，6D vector？
+	OccupiedGrid Occupiedgrid;			//占据网格
+	pcl::PointXYZ Key_coordinate;		//占据网格中关键点坐标
+	vector<double> vector3D;  //三维向量
+	float ***tsdf;
+
+
+	void getOccupiedGrid(pcl::PointCloud<pcl::PointXYZ>::Ptr Mpoint, OccupiedGrid &Occupiedgrid);//得到占据网格函数 参数列表：指向模型点云的指针，关键点坐标，占据网格引用。
+
+	void get_TSDF(pcl::PointCloud<pcl::PointXYZ>::Ptr Mpoint, float Border[6]);                  //TSDF距离场 参数列表：指向模型点云的指针，边界
+	void get_Vector3D(vector<Surface> &surface);					//获取三维向量
+
+
 };
+
 
 
 
@@ -51,14 +58,21 @@ class ModelPoint                                                          //模型
 public:
 	pcl::PointCloud<pcl::PointXYZ>::Ptr Mpoint;						     //点云指针
 	vector<Surface>	surface;											//存放分割好的面的信息
-    void getArea(pcl::PointCloud<pcl::PointXYZ>::Ptr Mpoint, vector<Surface> &surface);	   //三维向量表示面积大小
-	bool byHeight();                                           //待定
-	bool byArea();                                              //待定
-	bool byOccupied();                                          //待定
+	pcl::PointCloud<pcl::PointXYZ> key_coordinates;						//所有关键点坐标
+	vector<KeyPoint> keyPoint;											//关键点集合
+
+	void getArea(pcl::PointCloud<pcl::PointXYZ>::Ptr Mpoint, vector<Surface> &surface);	   //三维向量表示面积大小
+	pcl::PointCloud<pcl::PointXYZ> getKeypoint(pcl::PointCloud<pcl::PointXYZ>::Ptr Mpoint); //提取关键点函数 参数列表：指向模型点云的指针 返回值 ：关键点坐标数组
+
+
+																							//bool byHeight();                                           //待定
+																							//bool byArea();                                              //待定
+																							//bool byOccupied();                                          //待定
 
 };
+
 /*关键点提取函数 输入指向点云的指针，输出关键点坐标集合*/
-pcl::PointCloud<pcl::PointXYZ>::Ptr getKeypoint(pcl::PointCloud<pcl::PointXYZ>::Ptr Mpoint)
+pcl::PointCloud<pcl::PointXYZ> ModelPoint::getKeypoint(pcl::PointCloud<pcl::PointXYZ>::Ptr Mpoint)
 {
 	boost::shared_ptr<pcl::visualization::PCLVisualizer> viewer(new pcl::visualization::PCLVisualizer);
 	viewer->addPointCloud(Mpoint, "all_cloud");
@@ -89,8 +103,9 @@ pcl::PointCloud<pcl::PointXYZ>::Ptr getKeypoint(pcl::PointCloud<pcl::PointXYZ>::
 		point.z = cloud_out->at(i).z;
 		cloud_harris->push_back(point);
 	}
-	return cloud_harris;
+	return *cloud_harris;
 }
+
 
 //李坤
 void ModelPoint::getArea(pcl::PointCloud<pcl::PointXYZ>::Ptr modelPoint, vector<Surface> &surface)								//分割面
