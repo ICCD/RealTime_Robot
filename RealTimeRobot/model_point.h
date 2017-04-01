@@ -22,6 +22,8 @@ using namespace Eigen::Architecture;
 using namespace std;
 using namespace pcl;
 
+#define PI 3.1415926    //定义π
+
 double						//用于求空间中点到平面距离的函数
 getDistance(float v1, float v2, float v3, float v4, pcl::PointXYZ point)
 {
@@ -53,11 +55,11 @@ public:
 	pcl::PointXYZ Key_coordinate;		//占据网格中关键点坐标
 	vector<double> vector3D;  //三维向量		都需初始化为0.04
 	float grid_value[12][12][12];
-
+	float Border[6];		//tsdf的边界 ，并非占据网格边界
 
 	void getOccupiedGrid(pcl::PointCloud<pcl::PointXYZ>::Ptr cloud, OccupiedGrid &Occupiedgrid,float resolution=0.02f,float f_adjust=0.08f);//得到占据网格函数 参数列表：指向模型点云的指针，关键点坐标，占据网格引用。resolution 和f_adjust分别代表分辨率和占据网格边长一半
 
-	void get_TSDF(pcl::PointCloud<pcl::PointXYZ>::Ptr cloud, float Border[6], float resolution = 0.02f, float f_adjust = 0.12f);                  //TSDF距离场 参数列表：指向模型点云的指针，边界
+	void get_TSDF(pcl::PointCloud<pcl::PointXYZ>::Ptr cloud, float resolution = 0.02f, float f_adjust = 0.12f);                  //TSDF距离场 参数列表：指向模型点云的指针，边界
 	void get_Vector3D(vector<Surface> &surface, vector<double> &vector3D);					//获取三维向量
 
 
@@ -137,7 +139,7 @@ void KeyPoint::getOccupiedGrid(pcl::PointCloud<pcl::PointXYZ>::Ptr cloud, Occupi
 	std::vector<pcl::PointXYZ, Eigen::aligned_allocator<pcl::PointXYZ>> pointGrid;			//存放有点的体素的中心坐标
 	Occupiedgrid.Number = octree_temp.getOccupiedVoxelCenters(pointGrid);			//得到有点的体素的中心坐标，存放在pointGrid中
 }
-void KeyPoint::get_TSDF(pcl::PointCloud<pcl::PointXYZ>::Ptr cloud, float Border[6], float resolution = 0.02f, float f_adjust = 0.12f)                //TSDF距离场 参数列表：指向模型点云的指针，边界
+void KeyPoint::get_TSDF(pcl::PointCloud<pcl::PointXYZ>::Ptr cloud, float resolution = 0.02f, float f_adjust = 0.12f)                //TSDF距离场 参数列表：指向模型点云的指针，边界
 {
 	pcl::octree::OctreePointCloudSearch<pcl::PointXYZ>octree(resolution);
 	octree.setInputCloud(cloud);
@@ -163,6 +165,14 @@ void KeyPoint::get_TSDF(pcl::PointCloud<pcl::PointXYZ>::Ptr cloud, float Border[
 	double max_X = v_center(0) + f_adjust;
 	double max_Y = v_center(1) + f_adjust;
 	double max_Z = v_center(2) + f_adjust;
+
+	Border[0] = min_X;
+	Border[1] = min_Y;
+	Border[2] = min_Z;
+	Border[3] = max_X;
+	Border[4] = max_Y;
+	Border[5] = max_Z;
+
 
 	//得到占据网格中的点，并将点的坐标存放在k_indices
 	num = octree.boxSearch(v_min, v_max, k_indices);
@@ -223,11 +233,7 @@ public:
 
 	void getArea(pcl::PointCloud<pcl::PointXYZ>::Ptr Mpoint, vector<Surface> &surface);	   //三维向量表示面积大小
 	pcl::PointCloud<pcl::PointXYZ> getKeypoint(pcl::PointCloud<pcl::PointXYZ>::Ptr Mpoint); //提取关键点函数 参数列表：指向模型点云的指针 返回值 ：关键点坐标数组
-
-
-																							//bool byHeight();                                           //待定
-																							//bool byArea();                                              //待定
-																							//bool byOccupied();                                          //待定
+																							
 
 };
 
@@ -267,7 +273,7 @@ pcl::PointCloud<pcl::PointXYZ> ModelPoint::getKeypoint(pcl::PointCloud<pcl::Poin
 }
 
 
-//李坤
+
 void ModelPoint::getArea(pcl::PointCloud<pcl::PointXYZ>::Ptr modelPoint, vector<Surface> &surface)								//分割面
 {
 	pcl::PointCloud<pcl::PointXYZ>::Ptr cloud_filtered(new pcl::PointCloud<pcl::PointXYZ>);	//原始点云
