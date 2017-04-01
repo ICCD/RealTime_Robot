@@ -201,7 +201,7 @@ pcl::PointCloud<pcl::PointXYZ> ScanPoint::getKeypoint(pcl::PointCloud<pcl::Point
 void ScanPoint::getArea(pcl::PointCloud<pcl::PointXYZ>::Ptr scanPoint, vector<Surface> &surface)								//分割面
 {
 	pcl::PointCloud<pcl::PointXYZ>::Ptr cloud_filtered(new pcl::PointCloud<pcl::PointXYZ>);	//原始点云
-	pcl::copyPointCloud（*scanPoint, *cloud_filtered);
+	pcl::copyPointCloud(*scanPoint, *cloud_filtered);
 	pcl::PointCloud<pcl::PointXYZ>::Ptr cloud_p(new pcl::PointCloud<pcl::PointXYZ>);		//每次分割出的点云
 	pcl::PointCloud<pcl::PointXYZ>::Ptr cloud_f(new pcl::PointCloud<pcl::PointXYZ>);		//分割后剩下的点云
 
@@ -249,7 +249,7 @@ void ScanPoint::getArea(pcl::PointCloud<pcl::PointXYZ>::Ptr scanPoint, vector<Su
 		Surface s_temp;
 		s_temp.Area = chull.getTotalArea();		//得到面积
 		s_temp.Coefficients = *Coefficients;
-		if ()
+	//	if ()
 			surface.push_back(s_temp);
 
 
