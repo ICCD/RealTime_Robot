@@ -1,3 +1,7 @@
+ï»¿#ifndef only
+
+#define only
+
 #include <Eigen/StdVector>
 #include <Eigen/Geometry>
 #include <pcl/PCLHeader.h>
@@ -15,6 +19,7 @@
 #include <cstdlib>
 #include <pcl/keypoints/harris_3D.h>
 #include <pcl/octree/octree.h>
+#include <key_point.h>
 
 using namespace Eigen;
 using namespace Eigen::internal;
@@ -22,226 +27,24 @@ using namespace Eigen::Architecture;
 using namespace std;
 using namespace pcl;
 
-#define PI 3.1415926    //¶¨Òå¦Ğ
-
-double						//ÓÃÓÚÇó¿Õ¼äÖĞµãµ½Æ½Ãæ¾àÀëµÄº¯Êı
-getDistance(float v1, float v2, float v3, float v4, pcl::PointXYZ point)
-{
-	double d = sqrt(v1*v1 + v2*v2 + v3*v3);
-	return abs(v1*point.x + v2*point.y + v3*point.z + v4) / d;
-}
 
 
-
-
-
-
-
-struct Surface {														//·Ö¸îÃæÀà
-	double Area;			//Ãæ»ı
-	pcl::ModelCoefficients Coefficients;			//ÃæµÄ²ÎÊı		
-	bool IsVertical;		//´¹Ö±ÃæÖµÎª1£¬Ë®Æ½ÃæÎª0		ÔİÊ±²»ÓÃÓÚÆ¥Åä
-};
-
-struct OccupiedGrid {
-	pcl::PointCloud<pcl::PointXYZ>::Ptr cloud;//µãÔÆ 
-	//float Border[6];                           //±ß½ç
-	int Number;                               //Õ¼¾İÍø¸ñÖĞÓĞµãµÄÌåËØµÄ¸öÊı		Õ¼¾İ±ÈÓÉ´ËÉ¸Ñ¡
-};
-
-
-class KeyPoint {														//¹Ø¼üµãĞÅÏ¢Àà
-public:
-	OccupiedGrid Occupiedgrid;			//Õ¼¾İÍø¸ñ
-	pcl::PointXYZ Key_coordinate;		//Õ¼¾İÍø¸ñÖĞ¹Ø¼üµã×ø±ê
-	
-
-	float grid_value[12][12][12];		//ÏòÁ¿³¡
-	float Border[6];		//tsdfµÄ±ß½ç £¬²¢·ÇÕ¼¾İÍø¸ñ±ß½ç
-
-	void getOccupiedGrid(pcl::PointCloud<pcl::PointXYZ>::Ptr cloud, OccupiedGrid &Occupiedgrid,float resolution=0.02f,float f_adjust=0.08f);//µÃµ½Õ¼¾İÍø¸ñº¯Êı ²ÎÊıÁĞ±í£ºÖ¸ÏòÄ£ĞÍµãÔÆµÄÖ¸Õë£¬¹Ø¼üµã×ø±ê£¬Õ¼¾İÍø¸ñÒıÓÃ¡£resolution ºÍf_adjust·Ö±ğ´ú±í·Ö±æÂÊºÍÕ¼¾İÍø¸ñ±ß³¤Ò»°ë
-
-	void get_TSDF(pcl::PointCloud<pcl::PointXYZ>::Ptr cloud, float resolution = 0.02f, float f_adjust = 0.12f);                  //TSDF¾àÀë³¡ ²ÎÊıÁĞ±í£ºÖ¸ÏòÄ£ĞÍµãÔÆµÄÖ¸Õë£¬±ß½ç
-	void get_Vector3D(vector<Surface> &surface);					//»ñÈ¡ÈıÎ¬ÏòÁ¿£¬¼´Èı¸öÃæµÄ´óĞ¡		
-
-
-};
-
-void KeyPoint::get_Vector3D(vector<Surface> &surface)					//»ñÈ¡ÈıÎ¬ÏòÁ¿			Ä¿Ç°¼òµ¥ÊµÏÖ
-{
-	int vertical = 0, horizontal = 0;
-	for (int i = 0; i < surface.size(); i++)
-	{
-		double distance = getDistance(surface[i].Coefficients.values[0], surface[i].Coefficients.values[1], surface[i].Coefficients.values[2], surface[i].Coefficients.values[3], Key_coordinate);//µãµ½Æ½Ãæ¾àÀë
-		if (surface[i].IsVertical == 0 && horizontal==0 && distance<=0.02)		//Ë®Æ½Ãæ Ö»ÓĞÒ»¸ö
-		{
-			vector3D[0] = surface[i].Area;
-			horizontal++;
-		}
-		else if(surface[i].IsVertical==0 && horizontal<=1 && distance <= 0.02)			//´¹Ö±Ãæ×î¶àÁ½¸ö
-		{
-			
-			vector3D[1+vertical] = surface[i].Area;
-			vertical++;
-		}
-	}
-	if (vector3D[1] < vector3D[2])
-	{
-		double temp = vector3D[2];
-		vector3D[2] = vector3D[1];
-		vector3D[1] = temp;
-	}
-}
-void KeyPoint::getOccupiedGrid(pcl::PointCloud<pcl::PointXYZ>::Ptr cloud, OccupiedGrid &Occupiedgrid, float resolution = 0.02f, float f_adjust = 0.08f)//µÃµ½Õ¼¾İÍø¸ñº¯Êı ²ÎÊıÁĞ±í£ºÖ¸ÏòÄ£ĞÍµãÔÆµÄÖ¸Õë£¬¹Ø¼üµã×ø±ê£¬Õ¼¾İÍø¸ñÒıÓÃ¡£
-{
-	pcl::octree::OctreePointCloudSearch<pcl::PointXYZ>octree(resolution);	//°Ë²æÊ÷
-	octree.setInputCloud(cloud);
-	octree.addPointsFromInputCloud();
-
-	Vector3f v_min;
-	Vector3f v_max;
-	Vector3f v_center;
-	v_center << Key_coordinate.x, Key_coordinate.y, Key_coordinate.z;			//ÊäÈë¹Ø¼üµãµÄ×ø±ê£¬È·¶¨Õ¼¾İÍø¸ñµÄÖĞĞÄ
-
-	Vector3f v_adjust;
-	v_adjust << f_adjust, f_adjust, f_adjust;
-	v_min << v_center - v_adjust;		//Õ¼¾İÍø¸ñµÄ×óÏÂ½Ç
-	v_max << v_center + v_adjust;		//Õ¼¾İÍø¸ñµÄÓÒÉÏ½Ç
-
-	std::vector<int> k_indices;			//Õ¼¾İÍø¸ñÖĞµãÔÚµãÔÆÖĞµÄË÷Òı
-	int num;	//Õ¼¾İÍø¸ñÖĞµãµÄ¸öÊı
-
-	double min_X = v_center(0) - f_adjust;
-	double min_Y = v_center(1) - f_adjust;
-	double min_Z = v_center(2) - f_adjust;
-
-	double max_X = v_center(0) + f_adjust;
-	double max_Y = v_center(1) + f_adjust;
-	double max_Z = v_center(2) + f_adjust;
-
-	//µÃµ½Õ¼¾İÍø¸ñÖĞµÄµã£¬²¢½«µãµÄ×ø±ê´æ·ÅÔÚk_indices
-	num = octree.boxSearch(v_min, v_max, k_indices);
-	//std::cout << num << std::endl;
-
-	pcl::octree::OctreePointCloudChangeDetector<pcl::PointXYZ>octree_temp(resolution);					//ÖØĞÂ¿ª±ÙÒ»¸ö°Ë²æÊ÷£¬Ö»´æÕ¼¾İÍø¸ñÖĞµÄµã
-	Occupiedgrid.cloud->width = k_indices.size();
-	Occupiedgrid.cloud->height = 1;
-	Occupiedgrid.cloud->resize(Occupiedgrid.cloud->width * Occupiedgrid.cloud->height);
-	for (int i = 0; i < num; i++)
-	{
-		Occupiedgrid.cloud->points[i].x = cloud->points[k_indices[i]].x;
-		Occupiedgrid.cloud->points[i].y = cloud->points[k_indices[i]].y;
-		Occupiedgrid.cloud->points[i].z = cloud->points[k_indices[i]].z;
-	}
-
-	octree_temp.defineBoundingBox(min_X, min_Y, min_Z, max_X, max_Y, max_Z);		//¶¨Òå°Ë²æÊ÷µÄ·¶Î§
-
-	octree_temp.setInputCloud(Occupiedgrid.cloud);
-	octree_temp.addPointsFromInputCloud();
-	std::vector<pcl::PointXYZ, Eigen::aligned_allocator<pcl::PointXYZ>> pointGrid;			//´æ·ÅÓĞµãµÄÌåËØµÄÖĞĞÄ×ø±ê
-	Occupiedgrid.Number = octree_temp.getOccupiedVoxelCenters(pointGrid);			//µÃµ½ÓĞµãµÄÌåËØµÄÖĞĞÄ×ø±ê£¬´æ·ÅÔÚpointGridÖĞ
-}
-void KeyPoint::get_TSDF(pcl::PointCloud<pcl::PointXYZ>::Ptr cloud, float resolution = 0.02f, float f_adjust = 0.12f)                //TSDF¾àÀë³¡ ²ÎÊıÁĞ±í£ºÖ¸ÏòÄ£ĞÍµãÔÆµÄÖ¸Õë£¬±ß½ç
-{
-	pcl::octree::OctreePointCloudSearch<pcl::PointXYZ>octree(resolution);
-	octree.setInputCloud(cloud);
-	octree.addPointsFromInputCloud();
-
-	Vector3f v_min;
-	Vector3f v_max;
-	Vector3f v_center;
-	v_center << Key_coordinate.x, Key_coordinate.y, Key_coordinate.z;			//ÊäÈë¹Ø¼üµãµÄ×ø±ê£¬È·¶¨Õ¼¾İÍø¸ñµÄÖĞĞÄ
-
-	Vector3f v_adjust;
-	v_adjust << f_adjust, f_adjust, f_adjust;
-	v_min << v_center - v_adjust;		//Õ¼¾İÍø¸ñµÄ×óÏÂ½Ç
-	v_max << v_center + v_adjust;		//Õ¼¾İÍø¸ñµÄÓÒÉÏ½Ç
-
-	std::vector<int> k_indices;			//Õ¼¾İÍø¸ñÖĞµãÔÚµãÔÆÖĞµÄË÷Òı
-	int num;	//Õ¼¾İÍø¸ñÖĞµãµÄ¸öÊı
-
-	double min_X = v_center(0) - f_adjust;
-	double min_Y = v_center(1) - f_adjust;
-	double min_Z = v_center(2) - f_adjust;
-
-	double max_X = v_center(0) + f_adjust;
-	double max_Y = v_center(1) + f_adjust;
-	double max_Z = v_center(2) + f_adjust;
-
-	Border[0] = min_X;
-	Border[1] = min_Y;
-	Border[2] = min_Z;
-	Border[3] = max_X;
-	Border[4] = max_Y;
-	Border[5] = max_Z;
-
-
-	//µÃµ½Õ¼¾İÍø¸ñÖĞµÄµã£¬²¢½«µãµÄ×ø±ê´æ·ÅÔÚk_indices
-	num = octree.boxSearch(v_min, v_max, k_indices);
-	//std::cout << num << std::endl;
-
-	pcl::octree::OctreePointCloudChangeDetector<pcl::PointXYZ>octree_temp(resolution);					//ÖØĞÂ¿ª±ÙÒ»¸ö°Ë²æÊ÷£¬Ö»´æÕ¼¾İÍø¸ñÖĞµÄµã
-	pcl::PointCloud<pcl::PointXYZ>::Ptr cloud_temp(new pcl::PointCloud<pcl::PointXYZ>);
-	cloud_temp->width = k_indices.size();
-	cloud_temp->height = 1;
-	cloud_temp->points.resize(cloud_temp->width * cloud_temp->height);
-
-	for (int i = 0; i < num; i++)
-	{
-		cloud_temp->points[i].x = cloud->points[k_indices[i]].x;
-		cloud_temp->points[i].y = cloud->points[k_indices[i]].y;
-		cloud_temp->points[i].z = cloud->points[k_indices[i]].z;
-	}
-	octree_temp.defineBoundingBox(min_X, min_Y, min_Z, max_X, max_Y, max_Z);	//¶¨Òå°Ë²æÊ÷µÄ·¶Î§
-	octree_temp.setInputCloud(cloud_temp);
-	octree_temp.addPointsFromInputCloud();
-	std::vector<pcl::PointXYZ, Eigen::aligned_allocator<pcl::PointXYZ>> pointGrid;
-	int num_center = octree_temp.getOccupiedVoxelCenters(pointGrid);
-
-	for (int i = 0; i<12; i++)
-		for (int j = 0; j<12; j++)
-			for (int k = 0; k < 12; k++)
-			{
-				float _distance = 900;
-				for (int p = 1; p < pointGrid.size(); p++)
-				{
-					int x = (pointGrid[p].x - min_X) / 0.02;	//¼ä¾à
-					int y = (pointGrid[p].y - min_Y) / 0.02;
-					int z = (pointGrid[p].z - min_Z) / 0.02;
-					float temp = sqrt(x*x + y*y + z*z);
-					if (temp < _distance)
-						_distance = temp;
-				}
-				grid_value[i][j][k] = _distance;
-			}
-
-}
-
-
-
-
-
-
-
-
-
-class ModelPoint                                                          //Ä£ĞÍµãÔÆÀà
+class ModelPoint                                                          //æ¨¡å‹ç‚¹äº‘ç±»
 {
 public:
-	pcl::PointCloud<pcl::PointXYZ>::Ptr Mpoint;						     //µãÔÆÖ¸Õë
-	vector<Surface>	surface;											//´æ·Å·Ö¸îºÃµÄÃæµÄĞÅÏ¢
-	pcl::PointCloud<pcl::PointXYZ> key_coordinates;						//ËùÓĞ¹Ø¼üµã×ø±ê
-	vector<KeyPoint> keyPoint;											//¹Ø¼üµã¼¯ºÏ
+	pcl::PointCloud<pcl::PointXYZ>::Ptr Mpoint;						     //ç‚¹äº‘æŒ‡é’ˆ
+	vector<Surface>	surface;											//å­˜æ”¾åˆ†å‰²å¥½çš„é¢çš„ä¿¡æ¯
+	pcl::PointCloud<pcl::PointXYZ> key_coordinates;						//æ‰€æœ‰å…³é”®ç‚¹åæ ‡
+	vector<KeyPoint> keyPoint;											//å…³é”®ç‚¹é›†åˆ
 
 
-	//·½·¨
-	void getArea(pcl::PointCloud<pcl::PointXYZ>::Ptr modelPoint, vector<Surface> &surface);	   //ÈıÎ¬ÏòÁ¿±íÊ¾Ãæ»ı´óĞ¡
-	pcl::PointCloud<pcl::PointXYZ> getKeypoint(pcl::PointCloud<pcl::PointXYZ>::Ptr Mpoint); //ÌáÈ¡¹Ø¼üµãº¯Êı ²ÎÊıÁĞ±í£ºÖ¸ÏòÄ£ĞÍµãÔÆµÄÖ¸Õë ·µ»ØÖµ £º¹Ø¼üµã×ø±êÊı×é
+	//æ–¹æ³•
+	void getArea(pcl::PointCloud<pcl::PointXYZ>::Ptr modelPoint, vector<Surface> &surface);	   //ä¸‰ç»´å‘é‡è¡¨ç¤ºé¢ç§¯å¤§å°
+	pcl::PointCloud<pcl::PointXYZ> getKeypoint(pcl::PointCloud<pcl::PointXYZ>::Ptr Mpoint); //æå–å…³é”®ç‚¹å‡½æ•° å‚æ•°åˆ—è¡¨ï¼šæŒ‡å‘æ¨¡å‹ç‚¹äº‘çš„æŒ‡é’ˆ è¿”å›å€¼ ï¼šå…³é”®ç‚¹åæ ‡æ•°ç»„
 																							
-
 };
 
-/*¹Ø¼üµãÌáÈ¡º¯Êı ÊäÈëÖ¸ÏòµãÔÆµÄÖ¸Õë£¬Êä³ö¹Ø¼üµã×ø±ê¼¯ºÏ*/
+/*å…³é”®ç‚¹æå–å‡½æ•° è¾“å…¥æŒ‡å‘ç‚¹äº‘çš„æŒ‡é’ˆï¼Œè¾“å‡ºå…³é”®ç‚¹åæ ‡é›†åˆ*/
 pcl::PointCloud<pcl::PointXYZ> ModelPoint::getKeypoint(pcl::PointCloud<pcl::PointXYZ>::Ptr Mpoint)
 {
 	boost::shared_ptr<pcl::visualization::PCLVisualizer> viewer(new pcl::visualization::PCLVisualizer);
@@ -278,32 +81,32 @@ pcl::PointCloud<pcl::PointXYZ> ModelPoint::getKeypoint(pcl::PointCloud<pcl::Poin
 
 
 
-void ModelPoint::getArea(pcl::PointCloud<pcl::PointXYZ>::Ptr modelPoint, vector<Surface> &surface)								//·Ö¸îÃæ
+void ModelPoint::getArea(pcl::PointCloud<pcl::PointXYZ>::Ptr modelPoint, vector<Surface> &surface)								//åˆ†å‰²é¢
 {
-	pcl::PointCloud<pcl::PointXYZ>::Ptr cloud_filtered(new pcl::PointCloud<pcl::PointXYZ>);	//Ô­Ê¼µãÔÆ
+	pcl::PointCloud<pcl::PointXYZ>::Ptr cloud_filtered(new pcl::PointCloud<pcl::PointXYZ>);	//åŸå§‹ç‚¹äº‘
 	pcl::copyPointCloud(*modelPoint, *cloud_filtered);
-	pcl::PointCloud<pcl::PointXYZ>::Ptr cloud_p(new pcl::PointCloud<pcl::PointXYZ>);		//Ã¿´Î·Ö¸î³öµÄµãÔÆ
-	pcl::PointCloud<pcl::PointXYZ>::Ptr cloud_f(new pcl::PointCloud<pcl::PointXYZ>);		//·Ö¸îºóÊ£ÏÂµÄµãÔÆ
+	pcl::PointCloud<pcl::PointXYZ>::Ptr cloud_p(new pcl::PointCloud<pcl::PointXYZ>);		//æ¯æ¬¡åˆ†å‰²å‡ºçš„ç‚¹äº‘
+	pcl::PointCloud<pcl::PointXYZ>::Ptr cloud_f(new pcl::PointCloud<pcl::PointXYZ>);		//åˆ†å‰²åå‰©ä¸‹çš„ç‚¹äº‘
 
 	pcl::ModelCoefficients::Ptr Coefficients(new pcl::ModelCoefficients());
 	pcl::PointIndices::Ptr inliers(new pcl::PointIndices());
-	// ´´½¨·Ö¸î¶ÔÏó
+	// åˆ›å»ºåˆ†å‰²å¯¹è±¡
 	pcl::SACSegmentation<pcl::PointXYZ> seg;
-	// ¿ÉÑ¡
+	// å¯é€‰
 	seg.setOptimizeCoefficients(true);
-	// ±ØÑ¡
+	// å¿…é€‰
 	seg.setModelType(pcl::SACMODEL_PLANE);
 	seg.setMethodType(pcl::SAC_RANSAC);
 	seg.setMaxIterations(1000);
 	seg.setDistanceThreshold(0.005);
 
-	// ´´½¨ÂË²¨Æ÷¶ÔÏó
+	// åˆ›å»ºæ»¤æ³¢å™¨å¯¹è±¡
 	pcl::ExtractIndices<pcl::PointXYZ> extract;
 	int  nr_points = (int)cloud_filtered->points.size();
-	// µ±»¹ÓĞ30%Ô­Ê¼µãÔÆÊı¾İÊ±
+	// å½“è¿˜æœ‰30%åŸå§‹ç‚¹äº‘æ•°æ®æ—¶
 	while (cloud_filtered->points.size() > 0.15 * nr_points)
 	{
-		// ´ÓÓàÏÂµÄµãÔÆÖĞ·Ö¸î×î´óÆ½Ãæ×é³É²¿·Ö
+		// ä»ä½™ä¸‹çš„ç‚¹äº‘ä¸­åˆ†å‰²æœ€å¤§å¹³é¢ç»„æˆéƒ¨åˆ†
 		seg.setInputCloud(cloud_filtered);
 		seg.segment(*inliers, *Coefficients);
 		if (inliers->indices.size() == 0)
@@ -311,11 +114,11 @@ void ModelPoint::getArea(pcl::PointCloud<pcl::PointXYZ>::Ptr modelPoint, vector<
 			std::cerr << "Could not estimate a planar model for the given dataset." << std::endl;
 			break;
 		}
-		// ·ÖÀëÄÚ²ã
+		// åˆ†ç¦»å†…å±‚
 		extract.setInputCloud(cloud_filtered);
 		extract.setIndices(inliers);
 		extract.setNegative(false);
-		extract.filter(*cloud_p);		//·Ö¸î³öµÄÆ½Ãæ´æÔÚcloud_pÖĞ
+		extract.filter(*cloud_p);		//åˆ†å‰²å‡ºçš„å¹³é¢å­˜åœ¨cloud_pä¸­
 										//std::cerr << "PointCloud representing the planar component: " << cloud_p->width * cloud_p->height << " data points." << std::endl;
 
 
@@ -327,15 +130,19 @@ void ModelPoint::getArea(pcl::PointCloud<pcl::PointXYZ>::Ptr modelPoint, vector<
 		// chull.setAlpha (0.1);
 		chull.reconstruct(*cloud_hull);
 		Surface s_temp;
-		s_temp.Area = chull.getTotalArea();		//µÃµ½Ãæ»ı
+		s_temp.Area = chull.getTotalArea();		//å¾—åˆ°é¢ç§¯
 		s_temp.Coefficients = *Coefficients;
-		if()							//ÅĞ¶Ï´¹Ö±Ãæ»òÕßË®Æ½Ãæ
+		//if()							//åˆ¤æ–­å‚ç›´é¢æˆ–è€…æ°´å¹³é¢
 		surface.push_back(s_temp);
 
 
-		// ´´½¨ÂË²¨Æ÷¶ÔÏó
+		// åˆ›å»ºæ»¤æ³¢å™¨å¯¹è±¡
 		extract.setNegative(true);
 		extract.filter(*cloud_f);
 		cloud_filtered.swap(cloud_f);
 	}
 }
+
+
+
+#endif // !only
