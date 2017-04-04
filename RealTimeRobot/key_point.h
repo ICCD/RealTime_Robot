@@ -58,14 +58,23 @@ public:
 	float grid_value[12][12][12];		//ÏòÁ¿³¡
 	float Border[6];		//tsdfµÄ±ß½ç £¬²¢·ÇÕ¼¾İÍø¸ñ±ß½ç
 
-	void getOccupiedGrid(pcl::PointCloud<pcl::PointXYZ>::Ptr cloud, OccupiedGrid &Occupiedgrid, float resolution, float f_adjust);//µÃµ½Õ¼¾İÍø¸ñº¯Êı ²ÎÊıÁĞ±í£ºÖ¸ÏòÄ£ĞÍµãÔÆµÄÖ¸Õë£¬¹Ø¼üµã×ø±ê£¬Õ¼¾İÍø¸ñÒıÓÃ¡£resolution ºÍf_adjust·Ö±ğ´ú±í·Ö±æÂÊºÍÕ¼¾İÍø¸ñ±ß³¤Ò»°ë
+	KeyPoint(pcl::PointXYZ point);  //¹¹Ôìº¯Êı
+	KeyPoint();						//Ä¬ÈÏ¹¹Ôìº¯Êı
+	void getOccupiedGrid(pcl::PointCloud<pcl::PointXYZ>::Ptr cloud, float resolution, float f_adjust);//µÃµ½Õ¼¾İÍø¸ñº¯Êı ²ÎÊıÁĞ±í£ºÖ¸ÏòÄ£ĞÍµãÔÆµÄÖ¸Õë£¬¹Ø¼üµã×ø±ê£¬Õ¼¾İÍø¸ñÒıÓÃ¡£resolution ºÍf_adjust·Ö±ğ´ú±í·Ö±æÂÊºÍÕ¼¾İÍø¸ñ±ß³¤Ò»°ë
 
 	void get_TSDF(pcl::PointCloud<pcl::PointXYZ>::Ptr cloud, float resolution, float f_adjust);                  //TSDF¾àÀë³¡ ²ÎÊıÁĞ±í£ºÖ¸ÏòÄ£ĞÍµãÔÆµÄÖ¸Õë£¬±ß½ç
-	void get_Vector3D(vector<Surface> &surface);					//»ñÈ¡ÈıÎ¬ÏòÁ¿£¬¼´Èı¸öÃæµÄ´óĞ¡		
+	void get_Vector3D(vector<Surface> &surface);					//»ñÈ¡ÈıÎ¬ÏòÁ¿£¬¼´Èı¸öÃæµÄ´óĞ¡	
 
 
 };
 
+KeyPoint::KeyPoint(pcl::PointXYZ point) {
+	Key_coordinate = point;
+	Occupiedgrid = OccupiedGrid();
+	pcl::PointCloud<pcl::PointXYZ>::Ptr cc(new pcl::PointCloud<pcl::PointXYZ>);
+	Occupiedgrid.cloud = cc;
+}
+KeyPoint::KeyPoint() {};
 void KeyPoint::get_Vector3D(vector<Surface> &surface)					//»ñÈ¡ÈıÎ¬ÏòÁ¿			Ä¿Ç°¼òµ¥ÊµÏÖ
 {
 	int vertical = 0, horizontal = 0;
@@ -91,7 +100,7 @@ void KeyPoint::get_Vector3D(vector<Surface> &surface)					//»ñÈ¡ÈıÎ¬ÏòÁ¿			Ä¿Ç°¼
 		vector3D[1] = temp;
 	}
 }
-void KeyPoint::getOccupiedGrid(pcl::PointCloud<pcl::PointXYZ>::Ptr cloud, OccupiedGrid &Occupiedgrid, float resolution = 0.02f, float f_adjust = 0.08f)//µÃµ½Õ¼¾İÍø¸ñº¯Êı ²ÎÊıÁĞ±í£ºÖ¸ÏòÄ£ĞÍµãÔÆµÄÖ¸Õë£¬¹Ø¼üµã×ø±ê£¬Õ¼¾İÍø¸ñÒıÓÃ¡£
+void KeyPoint::getOccupiedGrid(pcl::PointCloud<pcl::PointXYZ>::Ptr cloud, float resolution = 0.02f, float f_adjust = 0.08f)//µÃµ½Õ¼¾İÍø¸ñº¯Êı ²ÎÊıÁĞ±í£ºÖ¸ÏòÄ£ĞÍµãÔÆµÄÖ¸Õë£¬¹Ø¼üµã×ø±ê£¬Õ¼¾İÍø¸ñÒıÓÃ¡£
 {
 	pcl::octree::OctreePointCloudSearch<pcl::PointXYZ>octree(resolution);	//°Ë²æÊ÷
 	octree.setInputCloud(cloud);
@@ -123,6 +132,7 @@ void KeyPoint::getOccupiedGrid(pcl::PointCloud<pcl::PointXYZ>::Ptr cloud, Occupi
 	//std::cout << num << std::endl;
 
 	pcl::octree::OctreePointCloudChangeDetector<pcl::PointXYZ>octree_temp(resolution);					//ÖØĞÂ¿ª±ÙÒ»¸ö°Ë²æÊ÷£¬Ö»´æÕ¼¾İÍø¸ñÖĞµÄµã
+ 	
 	Occupiedgrid.cloud->width = k_indices.size();
 	Occupiedgrid.cloud->height = 1;
 	Occupiedgrid.cloud->resize(Occupiedgrid.cloud->width * Occupiedgrid.cloud->height);
@@ -215,5 +225,3 @@ void KeyPoint::get_TSDF(pcl::PointCloud<pcl::PointXYZ>::Ptr cloud, float resolut
 			}
 
 }
-
-

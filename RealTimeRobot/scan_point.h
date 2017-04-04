@@ -32,7 +32,7 @@ public:
 	vector<Surface>	surface;											//存放分割好的面的信息
 	pcl::PointCloud<pcl::PointXYZ> key_coordinates;						//所有关键点坐标
 	vector<KeyPoint> keyPoint;											//关键点集合
-	void get_Area(pcl::PointCloud<pcl::PointXYZ>::Ptr scanPoint, vector<Surface> &surface);	   //三维向量表示面积大小
+	void get_Area(pcl::PointCloud<pcl::PointXYZ>::Ptr scanPoint);	   //三维向量表示面积大小
 
 	ScanPoint(pcl::PointCloud<pcl::PointXYZ>::Ptr Spoint_got);
 	pcl::PointCloud<pcl::PointXYZ> getKeypoint(); //提取关键点函数 参数列表：指向模型点云的指针 返回值 ：关键点坐标数组
@@ -77,7 +77,7 @@ pcl::PointCloud<pcl::PointXYZ> ScanPoint::getKeypoint()
 
 
 //
-void ScanPoint::get_Area(pcl::PointCloud<pcl::PointXYZ>::Ptr scanPoint, vector<Surface> &surface)								//分割面
+void ScanPoint::get_Area(pcl::PointCloud<pcl::PointXYZ>::Ptr scanPoint)								//分割面
 {
 	pcl::PointCloud<pcl::PointXYZ>::Ptr cloud_filtered(new pcl::PointCloud<pcl::PointXYZ>);	//原始点云
 	pcl::copyPointCloud(*scanPoint, *cloud_filtered);
@@ -138,7 +138,7 @@ void ScanPoint::get_Area(pcl::PointCloud<pcl::PointXYZ>::Ptr scanPoint, vector<S
 		cloud_filtered.swap(cloud_f);
 	}
 }
-
+//define by xueyu 构造函数
 ScanPoint::ScanPoint(pcl::PointCloud<pcl::PointXYZ>::Ptr Spoint_got) {
 	Spoint = Spoint_got;
 }

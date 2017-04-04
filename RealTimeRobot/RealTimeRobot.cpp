@@ -13,25 +13,31 @@
 #include <model_point.h>
 #include <scan_point.h>
 #include <matching.h>
+#include <key_point.h>
 
 using namespace pcl;
 int main()
 {
+	//加载点云
 	pcl::PointCloud<pcl::PointXYZ>::Ptr cloud(new pcl::PointCloud<pcl::PointXYZ>);
 	pcl::io::loadPCDFile("6.pcd", *cloud);
+	//实例化ScanPoint对象，传入点云
 	ScanPoint scanpoint =  ScanPoint(cloud);
+	//获取关键点
 	pcl::PointCloud<pcl::PointXYZ> keypoint = scanpoint.getKeypoint();
-
-
-
-
-
-	/*pcl::PointCloud<pcl::PointXYZ>::Ptr cloud(new pcl::PointCloud<pcl::PointXYZ>);
-	pcl::io::loadPCDFile("6.pcd", *cloud);
-	pcl::visualization::CloudViewer viewer("Cloud Viewer");
-	viewer.showCloud(cloud);
+	vector<KeyPoint>  skeyPoint;
+	skeyPoint.resize(keypoint.points.size());
+	int count = 0;//计数
+	for each (pcl::PointXYZ onepoint in keypoint)
+	{
+		KeyPoint p = KeyPoint(onepoint);
+		p.getOccupiedGrid(cloud);
+		p.get_TSDF(cloud);
+		skeyPoint[count++]  = p;
+	}
 	
-	pcl::PointCloud<pcl::PointXYZ> * i;*/
+	
+
 	std::cout << "No Bug" << std::endl;
 	int o = 0;
 	while (true){

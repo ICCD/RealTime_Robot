@@ -39,13 +39,13 @@ public:
 
 
 	//方法
-	void getArea(pcl::PointCloud<pcl::PointXYZ>::Ptr modelPoint, vector<Surface> &surface);	   //三维向量表示面积大小
-	pcl::PointCloud<pcl::PointXYZ> getKeypoint(pcl::PointCloud<pcl::PointXYZ>::Ptr Mpoint); //提取关键点函数 参数列表：指向模型点云的指针 返回值 ：关键点坐标数组
+	void getArea(pcl::PointCloud<pcl::PointXYZ>::Ptr modelPoint);	   //三维向量表示面积大小
+	pcl::PointCloud<pcl::PointXYZ> getKeypoint(); //提取关键点函数 参数列表：指向模型点云的指针 返回值 ：关键点坐标数组
 																							
 };
 
 /*关键点提取函数 输入指向点云的指针，输出关键点坐标集合*/
-pcl::PointCloud<pcl::PointXYZ> ModelPoint::getKeypoint(pcl::PointCloud<pcl::PointXYZ>::Ptr Mpoint)
+pcl::PointCloud<pcl::PointXYZ> ModelPoint::getKeypoint()
 {
 	boost::shared_ptr<pcl::visualization::PCLVisualizer> viewer(new pcl::visualization::PCLVisualizer);
 	viewer->addPointCloud(Mpoint, "all_cloud");
@@ -81,7 +81,7 @@ pcl::PointCloud<pcl::PointXYZ> ModelPoint::getKeypoint(pcl::PointCloud<pcl::Poin
 
 
 
-void ModelPoint::getArea(pcl::PointCloud<pcl::PointXYZ>::Ptr modelPoint, vector<Surface> &surface)								//分割面
+void ModelPoint::getArea(pcl::PointCloud<pcl::PointXYZ>::Ptr modelPoint)								//分割面
 {
 	pcl::PointCloud<pcl::PointXYZ>::Ptr cloud_filtered(new pcl::PointCloud<pcl::PointXYZ>);	//原始点云
 	pcl::copyPointCloud(*modelPoint, *cloud_filtered);
@@ -145,4 +145,4 @@ void ModelPoint::getArea(pcl::PointCloud<pcl::PointXYZ>::Ptr modelPoint, vector<
 
 
 
-#endif // !only
+#endif 
