@@ -43,8 +43,8 @@ public:
 /*关键点提取函数 输入指向点云的指针，输出关键点坐标集合*/
 pcl::PointCloud<pcl::PointXYZ> ScanPoint::getKeypoint()
 {
-	boost::shared_ptr<pcl::visualization::PCLVisualizer> viewer(new pcl::visualization::PCLVisualizer);
-	viewer->addPointCloud(Spoint, "all_cloud");
+	//boost::shared_ptr<pcl::visualization::PCLVisualizer> viewer(new pcl::visualization::PCLVisualizer);
+	//viewer->addPointCloud(Spoint, "all_cloud");
 	pcl::PointCloud<pcl::PointXYZI>::Ptr cloud_out(new pcl::PointCloud<pcl::PointXYZI>);
 	pcl::HarrisKeypoint3D<pcl::PointXYZ, pcl::PointXYZI, pcl::Normal> harris;
 	harris.setInputCloud(Spoint);

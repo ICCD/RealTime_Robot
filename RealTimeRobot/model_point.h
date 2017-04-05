@@ -36,6 +36,8 @@ public:
 	vector<Surface>	surface;											//存放分割好的面的信息
 	pcl::PointCloud<pcl::PointXYZ> key_coordinates;						//所有关键点坐标
 	vector<KeyPoint> keyPoint;											//关键点集合
+	ModelPoint();														//默认构造函数
+	ModelPoint(pcl::PointCloud<pcl::PointXYZ>::Ptr m);					//构造函数
 
 
 	//方法
@@ -47,8 +49,8 @@ public:
 /*关键点提取函数 输入指向点云的指针，输出关键点坐标集合*/
 pcl::PointCloud<pcl::PointXYZ> ModelPoint::getKeypoint()
 {
-	boost::shared_ptr<pcl::visualization::PCLVisualizer> viewer(new pcl::visualization::PCLVisualizer);
-	viewer->addPointCloud(Mpoint, "all_cloud");
+	//boost::shared_ptr<pcl::visualization::PCLVisualizer> viewer(new pcl::visualization::PCLVisualizer);
+	//viewer->addPointCloud(Mpoint, "all_cloud");
 	pcl::PointCloud<pcl::PointXYZI>::Ptr cloud_out(new pcl::PointCloud<pcl::PointXYZI>);
 	pcl::HarrisKeypoint3D<pcl::PointXYZ, pcl::PointXYZI, pcl::Normal> harris;
 	harris.setInputCloud(Mpoint);
@@ -80,6 +82,15 @@ pcl::PointCloud<pcl::PointXYZ> ModelPoint::getKeypoint()
 }
 
 
+
+ ModelPoint::ModelPoint()
+{
+ }
+
+  ModelPoint::ModelPoint(pcl::PointCloud<pcl::PointXYZ>::Ptr m)
+ {
+	  Mpoint = m;
+ }
 
 void ModelPoint::getArea(pcl::PointCloud<pcl::PointXYZ>::Ptr modelPoint)								//分割面
 {

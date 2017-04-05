@@ -14,28 +14,38 @@
 #include <scan_point.h>
 #include <matching.h>
 #include <key_point.h>
+#include <function.h>
 
 using namespace pcl;
 int main()
 {
 	//加载点云
 	pcl::PointCloud<pcl::PointXYZ>::Ptr cloud(new pcl::PointCloud<pcl::PointXYZ>);
-	pcl::io::loadPCDFile("6.pcd", *cloud);
+	pcl::io::loadPCDFile("11351.pcd", *cloud);
+	pcl::PointCloud<pcl::PointXYZ>::Ptr mcloud(new pcl::PointCloud<pcl::PointXYZ>);
+	pcl::io::loadPCDFile("70761_c.pcd", *mcloud);
 	//实例化ScanPoint对象，传入点云
 	ScanPoint scanpoint =  ScanPoint(cloud);
+	//scanpoint.get_Area(cloud);
+	//实例化Model对象，传入点云
+	ModelPoint modelpoint = ModelPoint(mcloud);
+ 	pcl::PointCloud<pcl::PointXYZ>::Ptr mkeypoint(new pcl::PointCloud<pcl::PointXYZ>);
+	*mkeypoint = modelpoint.getKeypoint();
 	//获取关键点
-	pcl::PointCloud<pcl::PointXYZ> keypoint = scanpoint.getKeypoint();
+	pcl::PointCloud<pcl::PointXYZ>::Ptr keypoint(new pcl::PointCloud<pcl::PointXYZ>);
+	*keypoint = scanpoint.getKeypoint();
+	keyPointICP(keypoint, mkeypoint,cloud,mcloud);
 	vector<KeyPoint>  skeyPoint;
-	skeyPoint.resize(keypoint.points.size());
+	skeyPoint.resize((*keypoint).points.size());
 	int count = 0;//计数
-	for each (pcl::PointXYZ onepoint in keypoint)
+	for each (pcl::PointXYZ onepoint in *keypoint)
 	{
 		KeyPoint p = KeyPoint(onepoint);
 		p.getOccupiedGrid(cloud);
 		p.get_TSDF(cloud);
+		//p.get_Vector3D(scanpoint.surface);
 		skeyPoint[count++]  = p;
 	}
-	
 	
 
 	std::cout << "No Bug" << std::endl;
@@ -46,39 +56,3 @@ int main()
     return 0;
 }
 
-void Ransac(int *x_cord, int *y_cord, int length, double &c0, double &c1, double &c2, char *file_name_prefix2, int nums, int &min) {
-
-}
-/*关键点提取函数 输入指向点云的指针，输出关键点坐标集合*/
-//pcl::PointCloud<pcl::PointXYZ>::Ptr getKeypoint(pcl::PointCloud<pcl::PointXYZ>::Ptr cloud){
-//	boost::shared_ptr<pcl::visualization::PCLVisualizer> viewer(new pcl::visualization::PCLVisualizer);
-//	viewer->addPointCloud(cloud, "all_cloud");
-//	pcl::PointCloud<pcl::PointXYZI>::Ptr cloud_out(new pcl::PointCloud<pcl::PointXYZI>);
-//	pcl::HarrisKeypoint3D<pcl::PointXYZ, pcl::PointXYZI, pcl::Normal> harris;
-//	harris.setInputCloud(cloud);
-//	harris.setNonMaxSupression(true);
-//	harris.setRadius(0.04f);
-//	harris.setThreshold(0.0012f);
-//	cloud_out->height = 1;
-//	cloud_out->width = 100;
-//	cloud_out->resize(cloud_out->height*cloud->width);
-//	cloud_out->clear();
-//	harris.compute(*cloud_out);
-//	int size = cloud_out->size();
-//
-//	pcl::PointCloud<pcl::PointXYZ>::Ptr cloud_harris(new pcl::PointCloud<pcl::PointXYZ>);
-//	cloud_harris->height = 1;
-//	cloud_harris->width = 100;
-//	cloud_harris->resize(cloud_out->height*cloud->width);
-//	cloud_harris->clear();
-//
-//	pcl::PointXYZ point;
-//	for (int i = 0; i<size; i++)
-//	{
-//		point.x = cloud_out->at(i).x;
-//		point.y = cloud_out->at(i).y;
-//		point.z = cloud_out->at(i).z;
-//		cloud_harris->push_back(point);
-//	}
-//	return cloud_harris;
-//}
