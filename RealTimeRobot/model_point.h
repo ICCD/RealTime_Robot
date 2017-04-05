@@ -20,10 +20,6 @@
 #include <pcl/keypoints/harris_3D.h>
 #include <pcl/octree/octree.h>
 #include <key_point.h>
-#include <iostream>
-#include <math.h>
-#define PI 3.1415926 
-
 
 using namespace Eigen;
 using namespace Eigen::internal;
@@ -32,39 +28,6 @@ using namespace std;
 using namespace pcl;
 
 
-//判断水平，该面法向量与（0,0,1）的夹角在0-10度或者在170—180度
-bool is_h_plane(pcl::ModelCoefficients &Coefficients)
-{
-	double a, b, c, d, e, angle;
-	a = 1;
-	b = (Coefficients.values[0] * Coefficients.values[0]) + (Coefficients.values[1] * Coefficients.values[1]) + (Coefficients.values[2] * Coefficients.values[2]);
-	c = sqrt(a + b);
-	d = Coefficients.values[2];
-	e = d / c;
-	angle = acos(e);
-	if ((angle > 2.9670597 && angle < PI) || (angle >0 && angle<0.1745329))
-		return true;
-	else
-		return false;
-
-}
-
-//判断是否为垂直面	该面法向量与（0,0,1）的夹角在80-100度   
-bool is_v_plane(pcl::ModelCoefficients &Coefficients)
-{
-	double a, b, c, d, e, angle;
-	a = 1;
-	b = (Coefficients.values[0] * Coefficients.values[0]) + (Coefficients.values[1] * Coefficients.values[1]) + (Coefficients.values[2] * Coefficients.values[2]);
-	c = sqrt(a + b);
-	d = Coefficients.values[2];
-	e = d / c;
-	angle = acos(e);
-	if ((angle > 1.3962634 && angle <1.7453292))
-		return true;
-	else
-		return false;
-
-}
 
 class ModelPoint                                                          //模型点云类
 {
@@ -180,18 +143,8 @@ void ModelPoint::getArea(pcl::PointCloud<pcl::PointXYZ>::Ptr modelPoint)								
 		Surface s_temp;
 		s_temp.Area = chull.getTotalArea();		//得到面积
 		s_temp.Coefficients = *Coefficients;
-		if (is_h_plane(s_temp.Coefficients))							//判断垂直面或者水平面
-		{
-			s_temp.IsVertical = 0;
-			surface.push_back(s_temp);
-		}
-			
-		else if (is_v_plane(s_temp.Coefficients))
-		{
-			s_temp.IsVertical = 1;
-			surface.push_back(s_temp);
-		}
-			
+		//if()							//判断垂直面或者水平面
+		surface.push_back(s_temp);
 
 
 		// 创建滤波器对象

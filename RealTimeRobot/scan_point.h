@@ -16,9 +16,6 @@
 #include <pcl/keypoints/harris_3D.h>
 #include <pcl/octree/octree.h>
 #include <key_point.h>
-#include <iostream>
-#include <math.h>
-#define PI 3.1415926 
 
 using namespace Eigen;
 using namespace Eigen::internal;
@@ -131,18 +128,8 @@ void ScanPoint::get_Area(pcl::PointCloud<pcl::PointXYZ>::Ptr scanPoint)								/
 		Surface s_temp;
 		s_temp.Area = chull.getTotalArea();		//得到面积
 		s_temp.Coefficients = *Coefficients;
-		if (is_h_plane(s_temp.Coefficients))							//判断垂直面或者水平面
-		{
-			s_temp.IsVertical = 0;
+	//	if ()
 			surface.push_back(s_temp);
-		}
-
-		else if (is_v_plane(s_temp.Coefficients))
-		{
-			s_temp.IsVertical = 1;
-			surface.push_back(s_temp);
-		}
-			
 
 
 		// 创建滤波器对象
