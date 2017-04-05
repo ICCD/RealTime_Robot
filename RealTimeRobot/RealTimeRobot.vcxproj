@@ -154,7 +154,7 @@
     <Text Include="ReadMe.txt" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="feature.h" />
+    <ClInclude Include="function.h" />
     <ClInclude Include="key_point.h" />
     <ClInclude Include="matching.h" />
     <ClInclude Include="model_point.h" />

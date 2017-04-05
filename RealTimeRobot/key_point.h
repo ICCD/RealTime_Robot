@@ -1,21 +1,21 @@
 #pragma once
-#include <Eigen/StdVector>
+#include <vector>
+#include <cstdlib>
 #include <Eigen/Geometry>
 #include <pcl/PCLHeader.h>
+#include <Eigen/StdVector>
 #include <pcl/exceptions.h>
-#include <pcl/point_traits.h>
-#include <vector>
-#include <pcl/ModelCoefficients.h>
 #include <pcl/point_types.h>
+#include <pcl/point_traits.h>
+#include <pcl/octree/octree.h>
+#include <pcl/ModelCoefficients.h>
+#include <pcl/keypoints/harris_3D.h>
+#include <pcl/surface/concave_hull.h>
+#include <pcl/filters/extract_indices.h>
 #include <pcl/sample_consensus/method_types.h>
 #include <pcl/sample_consensus/model_types.h>
 #include <pcl/segmentation/sac_segmentation.h>
-#include <pcl/surface/concave_hull.h>
-#include <pcl/filters/extract_indices.h>
 #include <pcl/visualization/pcl_visualizer.h>
-#include <cstdlib>
-#include <pcl/keypoints/harris_3D.h>
-#include <pcl/octree/octree.h>
 
 
 using namespace Eigen;
@@ -26,7 +26,7 @@ using namespace pcl;
 
 
 
-#define PI 3.1415926    //定义π
+
 
 double						//用于求空间中点到平面距离的函数
 getDistance(float v1, float v2, float v3, float v4, pcl::PointXYZ point)
@@ -71,8 +71,8 @@ public:
 KeyPoint::KeyPoint(pcl::PointXYZ point) {
 	Key_coordinate = point;
 	Occupiedgrid = OccupiedGrid();
-	pcl::PointCloud<pcl::PointXYZ>::Ptr cc(new pcl::PointCloud<pcl::PointXYZ>);
-	Occupiedgrid.cloud = cc;
+	pcl::PointCloud<pcl::PointXYZ>::Ptr pc(new pcl::PointCloud<pcl::PointXYZ>);
+	Occupiedgrid.cloud = pc;
 }
 KeyPoint::KeyPoint() {};
 void KeyPoint::get_Vector3D(vector<Surface> &surface)					//获取三维向量			目前简单实现
