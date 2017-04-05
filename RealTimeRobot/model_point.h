@@ -79,12 +79,12 @@ public:
 
 	//方法
 	void getArea(pcl::PointCloud<pcl::PointXYZ>::Ptr modelPoint);	   //三维向量表示面积大小
-	pcl::PointCloud<pcl::PointXYZ> getKeypoint(); //提取关键点函数 参数列表：指向模型点云的指针 返回值 ：关键点坐标数组
+	void getKeypoint(); //提取关键点函数 参数列表：指向模型点云的指针 返回值 ：关键点坐标数组
 																							
 };
 
 /*关键点提取函数 输入指向点云的指针，输出关键点坐标集合*/
-pcl::PointCloud<pcl::PointXYZ> ModelPoint::getKeypoint()
+void ModelPoint::getKeypoint()
 {
 	//boost::shared_ptr<pcl::visualization::PCLVisualizer> viewer(new pcl::visualization::PCLVisualizer);
 	//viewer->addPointCloud(Mpoint, "all_cloud");
@@ -115,7 +115,7 @@ pcl::PointCloud<pcl::PointXYZ> ModelPoint::getKeypoint()
 		point.z = cloud_out->at(i).z;
 		cloud_harris->push_back(point);
 	}
-	return *cloud_harris;
+	key_coordinates = *cloud_harris;
 }
 
 

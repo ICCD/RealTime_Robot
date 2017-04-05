@@ -26,39 +26,7 @@ using namespace Eigen::Architecture;
 using namespace std;
 using namespace pcl;
 
-//判断水平，该面法向量与（0,0,1）的夹角在0-10度或者在170—180度
-bool is_h_plane(pcl::ModelCoefficients &Coefficients)
-{
-	double a, b, c, d, e, angle;
-	a = 1;
-	b = (Coefficients.values[0] * Coefficients.values[0]) + (Coefficients.values[1] * Coefficients.values[1]) + (Coefficients.values[2] * Coefficients.values[2]);
-	c = sqrt(a + b);
-	d = Coefficients.values[2];
-	e = d / c;
-	angle = acos(e);
-	if ((angle > 2.9670597 && angle < PI) || (angle >0 && angle<0.1745329))
-		return true;
-	else
-		return false;
 
-}
-
-//判断是否为垂直面	该面法向量与（0,0,1）的夹角在80-100度   
-bool is_v_plane(pcl::ModelCoefficients &Coefficients)
-{
-	double a, b, c, d, e, angle;
-	a = 1;
-	b = (Coefficients.values[0] * Coefficients.values[0]) + (Coefficients.values[1] * Coefficients.values[1]) + (Coefficients.values[2] * Coefficients.values[2]);
-	c = sqrt(a + b);
-	d = Coefficients.values[2];
-	e = d / c;
-	angle = acos(e);
-	if ((angle > 1.3962634 && angle <1.7453292))
-		return true;
-	else
-		return false;
-
-}
 
 class ScanPoint                                                          //模型点云类
 {
@@ -70,13 +38,13 @@ public:
 	void get_Area(pcl::PointCloud<pcl::PointXYZ>::Ptr scanPoint);	   //三维向量表示面积大小
 
 	ScanPoint(pcl::PointCloud<pcl::PointXYZ>::Ptr Spoint_got);
-	pcl::PointCloud<pcl::PointXYZ> getKeypoint(); //提取关键点函数 参数列表：指向模型点云的指针 返回值 ：关键点坐标数组
+	void getKeypoint(); //提取关键点函数 参数列表：指向模型点云的指针 返回值 ：关键点坐标数组
 
 
 };
 
 /*关键点提取函数 输入指向点云的指针，输出关键点坐标集合*/
-pcl::PointCloud<pcl::PointXYZ> ScanPoint::getKeypoint()
+void ScanPoint::getKeypoint()
 {
 	//boost::shared_ptr<pcl::visualization::PCLVisualizer> viewer(new pcl::visualization::PCLVisualizer);
 	//viewer->addPointCloud(Spoint, "all_cloud");
@@ -107,7 +75,7 @@ pcl::PointCloud<pcl::PointXYZ> ScanPoint::getKeypoint()
 		point.z = cloud_out->at(i).z;
 		cloud_harris->push_back(point);
 	}
-	return *cloud_harris;
+	key_coordinates = *cloud_harris;
 }
 
 

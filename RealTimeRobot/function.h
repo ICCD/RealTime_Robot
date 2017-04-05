@@ -97,3 +97,27 @@ void  keyPointICP(pcl::PointCloud<pcl::PointXYZ>::Ptr SpointCloud, pcl::PointClo
 		o--;
 	}
 }
+
+bool match_by_height(pcl::PointXYZ &key1, pcl::PointXYZ &key2)		//利用高度筛选
+{
+	float temp = key1.z / key2.z;
+	if (temp >= float(2 / 3) || temp <= 1.5)
+		return true;
+	return false;
+}
+
+bool match_by_area(double *v1, double *v2)					//利用面积筛选
+{
+	if ((v1[0] / v2[0]) > 3 || (v1[0] / v2[0]) < float(1 / 3) || (v1[1] / v2[1]) > 3 || (v1[1] / v2[1]) < float(1 / 3) || (v1[2] / v2[2]) > 3 || (v1[2] / v2[2]) < float(1 / 3))
+		return false;
+	return true;
+}
+
+bool match_by_occupied(OccupiedGrid &o1, OccupiedGrid &o2)
+{
+	float temp = o1.Number / o2.Number;
+	if (temp > 2 || temp < 0.5)
+		return false;
+	return true;
+}
+
