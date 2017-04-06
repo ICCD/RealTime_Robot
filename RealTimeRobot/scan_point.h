@@ -1,4 +1,4 @@
-#include <Eigen/StdVector>
+ï»¿#include <Eigen/StdVector>
 #include <Eigen/Geometry>
 #include <pcl/PCLHeader.h>
 #include <pcl/exceptions.h>
@@ -16,6 +16,9 @@
 #include <pcl/keypoints/harris_3D.h>
 #include <pcl/octree/octree.h>
 #include <key_point.h>
+#include <iostream>
+#include <math.h>
+#define PI 3.1415926 
 
 using namespace Eigen;
 using namespace Eigen::internal;
@@ -25,22 +28,22 @@ using namespace pcl;
 
 
 
-class ScanPoint                                                          //Ä£ĞÍµãÔÆÀà
+class ScanPoint                                                          //æ¨¡å‹ç‚¹äº‘ç±»
 {
 public:
-	pcl::PointCloud<pcl::PointXYZ>::Ptr Spoint;						     //µãÔÆÖ¸Õë
-	vector<Surface>	surface;											//´æ·Å·Ö¸îºÃµÄÃæµÄĞÅÏ¢
-	pcl::PointCloud<pcl::PointXYZ> key_coordinates;						//ËùÓĞ¹Ø¼üµã×ø±ê
-	vector<KeyPoint> keyPoint;											//¹Ø¼üµã¼¯ºÏ
-	void get_Area(pcl::PointCloud<pcl::PointXYZ>::Ptr scanPoint);	   //ÈıÎ¬ÏòÁ¿±íÊ¾Ãæ»ı´óĞ¡
+	pcl::PointCloud<pcl::PointXYZ>::Ptr Spoint;						     //ç‚¹äº‘æŒ‡é’ˆ
+	vector<Surface>	surface;											//å­˜æ”¾åˆ†å‰²å¥½çš„é¢çš„ä¿¡æ¯
+	pcl::PointCloud<pcl::PointXYZ> key_coordinates;						//æ‰€æœ‰å…³é”®ç‚¹åæ ‡
+	vector<KeyPoint> keyPoint;											//å…³é”®ç‚¹é›†åˆ
+	void get_Area(pcl::PointCloud<pcl::PointXYZ>::Ptr scanPoint);	   //ä¸‰ç»´å‘é‡è¡¨ç¤ºé¢ç§¯å¤§å°
 
 	ScanPoint(pcl::PointCloud<pcl::PointXYZ>::Ptr Spoint_got);
-	void getKeypoint(); //ÌáÈ¡¹Ø¼üµãº¯Êı ²ÎÊıÁĞ±í£ºÖ¸ÏòÄ£ĞÍµãÔÆµÄÖ¸Õë ·µ»ØÖµ £º¹Ø¼üµã×ø±êÊı×é
+	void getKeypoint(); //æå–å…³é”®ç‚¹å‡½æ•° å‚æ•°åˆ—è¡¨ï¼šæŒ‡å‘æ¨¡å‹ç‚¹äº‘çš„æŒ‡é’ˆ è¿”å›å€¼ ï¼šå…³é”®ç‚¹åæ ‡æ•°ç»„
 
 
 };
 
-/*¹Ø¼üµãÌáÈ¡º¯Êı ÊäÈëÖ¸ÏòµãÔÆµÄÖ¸Õë£¬Êä³ö¹Ø¼üµã×ø±ê¼¯ºÏ*/
+/*å…³é”®ç‚¹æå–å‡½æ•° è¾“å…¥æŒ‡å‘ç‚¹äº‘çš„æŒ‡é’ˆï¼Œè¾“å‡ºå…³é”®ç‚¹åæ ‡é›†åˆ*/
 void ScanPoint::getKeypoint()
 {
 	//boost::shared_ptr<pcl::visualization::PCLVisualizer> viewer(new pcl::visualization::PCLVisualizer);
@@ -77,32 +80,32 @@ void ScanPoint::getKeypoint()
 
 
 //
-void ScanPoint::get_Area(pcl::PointCloud<pcl::PointXYZ>::Ptr scanPoint)								//·Ö¸îÃæ
+void ScanPoint::get_Area(pcl::PointCloud<pcl::PointXYZ>::Ptr scanPoint)							//åˆ†å‰²é¢
 {
-	pcl::PointCloud<pcl::PointXYZ>::Ptr cloud_filtered(new pcl::PointCloud<pcl::PointXYZ>);	//Ô­Ê¼µãÔÆ
+	pcl::PointCloud<pcl::PointXYZ>::Ptr cloud_filtered(new pcl::PointCloud<pcl::PointXYZ>);	//åŸå§‹ç‚¹äº‘
 	pcl::copyPointCloud(*scanPoint, *cloud_filtered);
-	pcl::PointCloud<pcl::PointXYZ>::Ptr cloud_p(new pcl::PointCloud<pcl::PointXYZ>);		//Ã¿´Î·Ö¸î³öµÄµãÔÆ
-	pcl::PointCloud<pcl::PointXYZ>::Ptr cloud_f(new pcl::PointCloud<pcl::PointXYZ>);		//·Ö¸îºóÊ£ÏÂµÄµãÔÆ
+	pcl::PointCloud<pcl::PointXYZ>::Ptr cloud_p(new pcl::PointCloud<pcl::PointXYZ>);		//æ¯æ¬¡åˆ†å‰²å‡ºçš„ç‚¹äº‘
+	pcl::PointCloud<pcl::PointXYZ>::Ptr cloud_f(new pcl::PointCloud<pcl::PointXYZ>);		//åˆ†å‰²åå‰©ä¸‹çš„ç‚¹äº‘
 
 	pcl::ModelCoefficients::Ptr Coefficients(new pcl::ModelCoefficients());
 	pcl::PointIndices::Ptr inliers(new pcl::PointIndices());
-	// ´´½¨·Ö¸î¶ÔÏó
+	// åˆ›å»ºåˆ†å‰²å¯¹è±¡
 	pcl::SACSegmentation<pcl::PointXYZ> seg;
-	// ¿ÉÑ¡
+	// å¯é€‰
 	seg.setOptimizeCoefficients(true);
-	// ±ØÑ¡
+	// å¿…é€‰
 	seg.setModelType(pcl::SACMODEL_PLANE);
 	seg.setMethodType(pcl::SAC_RANSAC);
 	seg.setMaxIterations(1000);
 	seg.setDistanceThreshold(0.005);
 
-	// ´´½¨ÂË²¨Æ÷¶ÔÏó
+	// åˆ›å»ºæ»¤æ³¢å™¨å¯¹è±¡
 	pcl::ExtractIndices<pcl::PointXYZ> extract;
 	int  nr_points = (int)cloud_filtered->points.size();
-	// µ±»¹ÓĞ30%Ô­Ê¼µãÔÆÊı¾İÊ±
+	// å½“è¿˜æœ‰30%åŸå§‹ç‚¹äº‘æ•°æ®æ—¶
 	while (cloud_filtered->points.size() > 0.15 * nr_points)
 	{
-		// ´ÓÓàÏÂµÄµãÔÆÖĞ·Ö¸î×î´óÆ½Ãæ×é³É²¿·Ö
+		// ä»ä½™ä¸‹çš„ç‚¹äº‘ä¸­åˆ†å‰²æœ€å¤§å¹³é¢ç»„æˆéƒ¨åˆ†
 		seg.setInputCloud(cloud_filtered);
 		seg.segment(*inliers, *Coefficients);
 		if (inliers->indices.size() == 0)
@@ -110,11 +113,11 @@ void ScanPoint::get_Area(pcl::PointCloud<pcl::PointXYZ>::Ptr scanPoint)								/
 			std::cerr << "Could not estimate a planar model for the given dataset." << std::endl;
 			break;
 		}
-		// ·ÖÀëÄÚ²ã
+		// åˆ†ç¦»å†…å±‚
 		extract.setInputCloud(cloud_filtered);
 		extract.setIndices(inliers);
 		extract.setNegative(false);
-		extract.filter(*cloud_p);		//·Ö¸î³öµÄÆ½Ãæ´æÔÚcloud_pÖĞ
+		extract.filter(*cloud_p);		//åˆ†å‰²å‡ºçš„å¹³é¢å­˜åœ¨cloud_pä¸­
 										//std::cerr << "PointCloud representing the planar component: " << cloud_p->width * cloud_p->height << " data points." << std::endl;
 
 
@@ -126,19 +129,26 @@ void ScanPoint::get_Area(pcl::PointCloud<pcl::PointXYZ>::Ptr scanPoint)								/
 		// chull.setAlpha (0.1);
 		chull.reconstruct(*cloud_hull);
 		Surface s_temp;
-		s_temp.Area = chull.getTotalArea();		//µÃµ½Ãæ»ı
+		s_temp.Area = chull.getTotalArea();		//å¾—åˆ°é¢ç§¯
 		s_temp.Coefficients = *Coefficients;
-	//	if ()
+		if (is_h_plane(s_temp.Coefficients))							//ï¿½Ğ¶Ï´ï¿½Ö±ï¿½ï¿½ï¿½ï¿½ï¿½Ë®Æ½ï¿½ï¿½
+		{
+			s_temp.IsVertical = 0;
 			surface.push_back(s_temp);
+		}
+
+		else if (is_v_plane(s_temp.Coefficients))
+		{
+			s_temp.IsVertical = 1;
 
 
-		// ´´½¨ÂË²¨Æ÷¶ÔÏó
+		// åˆ›å»ºæ»¤æ³¢å™¨å¯¹è±¡
 		extract.setNegative(true);
 		extract.filter(*cloud_f);
 		cloud_filtered.swap(cloud_f);
 	}
 }
-//define by xueyu ¹¹Ôìº¯Êı
+//define by xueyu æ„é€ å‡½æ•°
 ScanPoint::ScanPoint(pcl::PointCloud<pcl::PointXYZ>::Ptr Spoint_got) {
 	Spoint = Spoint_got;
 }
