@@ -8,8 +8,11 @@
 #include <pcl/common/transforms.h>
 #include <pcl/io/pcd_io.h>
 
+
 #define PI 3.1415926    //定义π
 #define RANSAC_TIMES  100 //?
+
+using namespace Eigen;
 
 //关键点对应后生成的点对
 struct PairPoint {
@@ -96,4 +99,13 @@ void  keyPointICP(pcl::PointCloud<pcl::PointXYZ>::Ptr SpointCloud, pcl::PointClo
 	while (true) {
 		o--;
 	}
+}
+
+/**
+*输入：关键点对：PairPoint
+*输出：4*4矩阵 ：Matrix4
+*用途：根据关键点对计算刚性变换矩阵
+**/
+Eigen::Matrix4f getMatrixfromPairPoint(PairPoint p) {
+
 }
