@@ -23,11 +23,14 @@
 #include <iostream>
 #include <math.h>
 #define PI 3.1415926 
+
+
 using namespace Eigen;
 using namespace Eigen::internal;
 using namespace Eigen::Architecture;
 using namespace std;
 using namespace pcl;
+
 
 //判断水平，该面法向量与（0,0,1）的夹角在0-10度或者在170—180度
 bool is_h_plane(pcl::ModelCoefficients &Coefficients)
@@ -74,14 +77,14 @@ public:
 	ModelPoint(pcl::PointCloud<pcl::PointXYZ>::Ptr m);					//构造函数
 
 
-	//方法
+																		//方法
 	void getArea(pcl::PointCloud<pcl::PointXYZ>::Ptr modelPoint);	   //三维向量表示面积大小
-	void getKeypoint(); //提取关键点函数 参数列表：指向模型点云的指针 返回值 ：关键点坐标数组
-																							
+	pcl::PointCloud<pcl::PointXYZ> getKeypoint(); //提取关键点函数 参数列表：指向模型点云的指针 返回值 ：关键点坐标数组
+
 };
 
 /*关键点提取函数 输入指向点云的指针，输出关键点坐标集合*/
-void ModelPoint::getKeypoint()
+pcl::PointCloud<pcl::PointXYZ> ModelPoint::getKeypoint()
 {
 	//boost::shared_ptr<pcl::visualization::PCLVisualizer> viewer(new pcl::visualization::PCLVisualizer);
 	//viewer->addPointCloud(Mpoint, "all_cloud");
@@ -113,18 +116,19 @@ void ModelPoint::getKeypoint()
 		cloud_harris->push_back(point);
 	}
 	key_coordinates = *cloud_harris;
+	return *cloud_harris;
 }
 
 
 
- ModelPoint::ModelPoint()
+ModelPoint::ModelPoint()
 {
- }
+}
 
-  ModelPoint::ModelPoint(pcl::PointCloud<pcl::PointXYZ>::Ptr m)
- {
-	  Mpoint = m;
- }
+ModelPoint::ModelPoint(pcl::PointCloud<pcl::PointXYZ>::Ptr m)
+{
+	Mpoint = m;
+}
 
 void ModelPoint::getArea(pcl::PointCloud<pcl::PointXYZ>::Ptr modelPoint)								//分割面
 {
@@ -188,6 +192,7 @@ void ModelPoint::getArea(pcl::PointCloud<pcl::PointXYZ>::Ptr modelPoint)								
 			s_temp.IsVertical = 1;
 			surface.push_back(s_temp);
 		}
+
 
 
 		// 创建滤波器对象

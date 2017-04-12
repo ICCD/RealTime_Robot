@@ -53,7 +53,7 @@ class KeyPoint {														//关键点信息类
 public:
 	OccupiedGrid Occupiedgrid;			//占据网格
 	pcl::PointXYZ Key_coordinate;		//占据网格中关键点坐标
-	double vector3D[3];  //
+	vector<double> vector3D;  //
 
 	float grid_value[12][12][12];		//向量场
 	float Border[6];		//tsdf的边界 ，并非占据网格边界

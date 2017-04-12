@@ -17,78 +17,45 @@
 #include <function.h>
 
 using namespace pcl;
+using namespace Eigen;
+using namespace Eigen::internal;
+using namespace Eigen::Architecture;
+
+
 int main()
 {
 	//加载点云
 	pcl::PointCloud<pcl::PointXYZ>::Ptr cloud(new pcl::PointCloud<pcl::PointXYZ>);
-	pcl::io::loadPCDFile("11351.pcd", *cloud);			//扫描点云
+	pcl::io::loadPCDFile("11351.pcd", *cloud);
 	pcl::PointCloud<pcl::PointXYZ>::Ptr mcloud(new pcl::PointCloud<pcl::PointXYZ>);
-	pcl::io::loadPCDFile("70761_c.pcd", *mcloud);
+	pcl::io::loadPCDFile("11351.pcd", *mcloud);
 
+	Eigen::Matrix4f transform_mat = Eigen::Matrix4f::Identity();	//平移矩阵
+	transform_mat(0, 3) = 0.8;
+	transform_mat(1, 3) = 0.8;
+	pcl::transformPointCloud(*mcloud, *mcloud, transform_mat);		//平移变换
+	
 	//实例化ScanPoint对象，传入点云
 	ScanPoint scanpoint =  ScanPoint(cloud);
-	scanpoint.get_Area(cloud);
-	scanpoint.getKeypoint();
+	//scanpoint.get_Area(cloud);
 	//实例化Model对象，传入点云
-
 	ModelPoint modelpoint = ModelPoint(mcloud);
-	modelpoint.getArea(mcloud);
-	modelpoint.getKeypoint();
+ 	pcl::PointCloud<pcl::PointXYZ>::Ptr mkeypoint(new pcl::PointCloud<pcl::PointXYZ>);
+	*mkeypoint = modelpoint.getKeypoint();
 	//获取关键点
-	
-
-		
-	scanpoint.keyPoint.resize((scanpoint.key_coordinates).points.size());		//扫描点云初始化
+	pcl::PointCloud<pcl::PointXYZ>::Ptr keypoint(new pcl::PointCloud<pcl::PointXYZ>);
+	*keypoint = scanpoint.getKeypoint();
+	keyPointICP(keypoint, mkeypoint,cloud,mcloud);
+	vector<KeyPoint>  skeyPoint;
+	skeyPoint.resize((*keypoint).points.size());
 	int count = 0;//计数
-	for each (pcl::PointXYZ onepoint in scanpoint.key_coordinates)
+	for each (pcl::PointXYZ onepoint in *keypoint)
 	{
 		KeyPoint p = KeyPoint(onepoint);
-
 		p.getOccupiedGrid(cloud);
 		p.get_TSDF(cloud);
-		p.get_Vector3D(scanpoint.surface);
-
-		scanpoint.keyPoint[count++]  = p;
-	}
-
-	modelpoint.keyPoint.resize((modelpoint.key_coordinates).points.size());		//模型点云初始化		迭代所有模型
-	int mcount = 0;//计数
-	for each (pcl::PointXYZ onepoint in modelpoint.key_coordinates)
-	{
-		KeyPoint p = KeyPoint(onepoint);
-
-		p.getOccupiedGrid(cloud);
-		p.get_TSDF(cloud);
-		p.get_Vector3D(modelpoint.surface);
-
-		modelpoint.keyPoint[mcount++] = p;
-	}
-	pcl::PointCloud<pcl::PointXYZ>::Ptr p_temp1(pcl::PointCloud<pcl::PointXYZ>);
-
-	//keyPointICP(scanpoint.key_coordinates, modelpoint.key_coordinates, cloud, mcloud);
-	vector<PairPoint> pairpoint;     //存放关键点对的集合
-	int ppnum = 0;
-	for each (KeyPoint k in modelpoint.keyPoint)
-	{
-		int singlePointPair = 0;
-		for each (KeyPoint sk in scanpoint.keyPoint)
-		{
-			if (match_by_height(k.Key_coordinate, sk.Key_coordinate) && match_by_area(k.vector3D, sk.vector3D) && match_by_occupied(k.Occupiedgrid, sk.Occupiedgrid)) {
-				PairPoint p;
-				p.point_i = k;
-				p.point_j = sk;
-				pairpoint[ppnum++] = p;
-				singlePointPair++;
-			}
-		}
-		if (singlePointPair >= 4) {
-			for (int i = 0; i < singlePointPair; i++) {
-
-			}
-			float get = get_Distance(k.grid_value, pairpoint[ppnum - singlePointPair].point_j.Occupiedgrid.cloud, k.Key_coordinate, pairpoint[ppnum - singlePointPair].point_j.Key_coordinate,
-				k.Border[0], k.Border[1], k.Border[2], k.Border[3], k.Border[4], k.Border[5]);
-
-		}
+		//p.get_Vector3D(scanpoint.surface);
+		skeyPoint[count++]  = p;
 	}
 	
 

@@ -13,7 +13,7 @@ using namespace Eigen;
 using namespace Eigen::internal;
 using namespace Eigen::Architecture;
 
-float get_Distance(float grid_value[12][12][12], pcl::PointCloud<pcl::PointXYZ>::Ptr& cloud, pcl::PointXYZ &p1_key, pcl::PointXYZ &p2_key, const double min_x, const double min_y, const double min_z, const double max_x, const double max_y, const double max_z, const float resolution=0.02f)
+float get_Distance(float*** grid_value, pcl::PointCloud<pcl::PointXYZ>::Ptr& cloud, pcl::PointXYZ &p1_key, pcl::PointXYZ &p2_key, const double min_x, const double min_y, const double min_z, const double max_x, const double max_y, const double max_z, const float resolution=0.02f)
 {
 	/*
 	参数列表说明：

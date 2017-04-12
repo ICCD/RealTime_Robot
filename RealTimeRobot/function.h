@@ -61,8 +61,8 @@ void Ransac(vector<PairPoint> pairpoint,int ransac_times) {
 
 void  keyPointICP(pcl::PointCloud<pcl::PointXYZ>::Ptr SpointCloud, pcl::PointCloud<pcl::PointXYZ>::Ptr mPointCloud , pcl::PointCloud<pcl::PointXYZ>::Ptr cloud, pcl::PointCloud<pcl::PointXYZ>::Ptr mcloud) {
 	pcl::IterativeClosestPoint<pcl::PointXYZ, pcl::PointXYZ> icp; //创建ICP对象，用于ICP配准
-	icp.setInputCloud(mPointCloud); //设置输入点云
-	icp.setInputTarget(SpointCloud); //设置目标点云（输入点云进行仿射变换，得到目标点云）
+	icp.setInputCloud(mcloud); //设置输入点云
+	icp.setInputTarget(cloud); //设置目标点云（输入点云进行仿射变换，得到目标点云）
 	pcl::PointCloud<pcl::PointXYZ> Final; //存储结果
 										  //进行配准，结果存储在Final中
 	icp.align(Final);
@@ -74,10 +74,10 @@ void  keyPointICP(pcl::PointCloud<pcl::PointXYZ>::Ptr SpointCloud, pcl::PointClo
 	pcl::transformPointCloud(*mcloud,*transformed_cloud, icp.getFinalTransformation());
 
 	//保存到PCD文件
-	pcl::io::savePCDFileASCII("transformed_cloud.pcd", *transformed_cloud); //将点云保存到PCD文件中
-
+	pcl::io::savePCDFileASCII("mcloud.pcd", *mcloud); //将点云保存到PCD文件中
+	pcl::io::savePCDFileASCII("transformed_cloud.pcd", *transformed_cloud);
 	//显示点云窗口
-	system("pcl_viewer.exe 11351.pcd 70761_c.pcd");
+	system("pcl_viewer.exe 11351.pcd mcloud.pcd");
 	system("pcl_viewer.exe 11351.pcd transformed_cloud.pcd");
 	//pcl::PointCloud<pcl::PointXYZ> cheng;
 	//cheng.width = (*mcloud).width;
@@ -97,27 +97,3 @@ void  keyPointICP(pcl::PointCloud<pcl::PointXYZ>::Ptr SpointCloud, pcl::PointClo
 		o--;
 	}
 }
-
-bool match_by_height(pcl::PointXYZ &key1, pcl::PointXYZ &key2)		//利用高度筛选
-{
-	float temp = key1.z / key2.z;
-	if (temp >= float(2 / 3) || temp <= 1.5)
-		return true;
-	return false;
-}
-
-bool match_by_area(double *v1, double *v2)					//利用面积筛选
-{
-	if ((v1[0] / v2[0]) > 3 || (v1[0] / v2[0]) < float(1 / 3) || (v1[1] / v2[1]) > 3 || (v1[1] / v2[1]) < float(1 / 3) || (v1[2] / v2[2]) > 3 || (v1[2] / v2[2]) < float(1 / 3))
-		return false;
-	return true;
-}
-
-bool match_by_occupied(OccupiedGrid &o1, OccupiedGrid &o2)
-{
-	float temp = o1.Number / o2.Number;
-	if (temp > 2 || temp < 0.5)
-		return false;
-	return true;
-}
-

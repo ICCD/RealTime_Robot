@@ -38,13 +38,13 @@ public:
 	void get_Area(pcl::PointCloud<pcl::PointXYZ>::Ptr scanPoint);	   //三维向量表示面积大小
 
 	ScanPoint(pcl::PointCloud<pcl::PointXYZ>::Ptr Spoint_got);
-	void getKeypoint(); //提取关键点函数 参数列表：指向模型点云的指针 返回值 ：关键点坐标数组
+	pcl::PointCloud<pcl::PointXYZ> getKeypoint(); //提取关键点函数 参数列表：指向模型点云的指针 返回值 ：关键点坐标数组
 
 
 };
 
 /*关键点提取函数 输入指向点云的指针，输出关键点坐标集合*/
-void ScanPoint::getKeypoint()
+pcl::PointCloud<pcl::PointXYZ> ScanPoint::getKeypoint()
 {
 	//boost::shared_ptr<pcl::visualization::PCLVisualizer> viewer(new pcl::visualization::PCLVisualizer);
 	//viewer->addPointCloud(Spoint, "all_cloud");
@@ -76,11 +76,12 @@ void ScanPoint::getKeypoint()
 		cloud_harris->push_back(point);
 	}
 	key_coordinates = *cloud_harris;
+	return *cloud_harris;
 }
 
 
 //
-void ScanPoint::get_Area(pcl::PointCloud<pcl::PointXYZ>::Ptr scanPoint)							//分割面
+void ScanPoint::get_Area(pcl::PointCloud<pcl::PointXYZ>::Ptr scanPoint)								//分割面
 {
 	pcl::PointCloud<pcl::PointXYZ>::Ptr cloud_filtered(new pcl::PointCloud<pcl::PointXYZ>);	//原始点云
 	pcl::copyPointCloud(*scanPoint, *cloud_filtered);
@@ -131,7 +132,7 @@ void ScanPoint::get_Area(pcl::PointCloud<pcl::PointXYZ>::Ptr scanPoint)							//
 		Surface s_temp;
 		s_temp.Area = chull.getTotalArea();		//得到面积
 		s_temp.Coefficients = *Coefficients;
-		if (is_h_plane(s_temp.Coefficients))							//�жϴ�ֱ�����ˮƽ��
+		if (is_h_plane(s_temp.Coefficients))							//判断垂直面或者水平面
 		{
 			s_temp.IsVertical = 0;
 			surface.push_back(s_temp);
@@ -140,6 +141,9 @@ void ScanPoint::get_Area(pcl::PointCloud<pcl::PointXYZ>::Ptr scanPoint)							//
 		else if (is_v_plane(s_temp.Coefficients))
 		{
 			s_temp.IsVertical = 1;
+			surface.push_back(s_temp);
+		}
+
 
 
 		// 创建滤波器对象
