@@ -30,14 +30,14 @@ int main()
 	pcl::PointCloud<pcl::PointXYZ>::Ptr mcloud(new pcl::PointCloud<pcl::PointXYZ>);
 	pcl::io::loadPCDFile("11351.pcd", *mcloud);
 
-	Eigen::Matrix4f transform_mat = Eigen::Matrix4f::Identity();	//平移矩阵
-	transform_mat(0, 3) = 0.8;
-	transform_mat(1, 3) = 0.8;
-	pcl::transformPointCloud(*mcloud, *mcloud, transform_mat);		//平移变换
+	//Eigen::Matrix4f transform_mat = Eigen::Matrix4f::Identity();	//平移矩阵
+	//transform_mat(0, 3) = 0.8;
+	//transform_mat(1, 3) = 0.8;
+	//pcl::transformPointCloud(*mcloud, *mcloud, transform_mat);		//平移变换
 	
 	//实例化ScanPoint对象，传入点云
 	ScanPoint scanpoint =  ScanPoint(cloud);
-	//scanpoint.get_Area(cloud);
+	scanpoint.get_Area(cloud);
 	//实例化Model对象，传入点云
 	ModelPoint modelpoint = ModelPoint(mcloud);
  	pcl::PointCloud<pcl::PointXYZ>::Ptr mkeypoint(new pcl::PointCloud<pcl::PointXYZ>);
@@ -45,7 +45,7 @@ int main()
 	//获取关键点
 	pcl::PointCloud<pcl::PointXYZ>::Ptr keypoint(new pcl::PointCloud<pcl::PointXYZ>);
 	*keypoint = scanpoint.getKeypoint();
-	keyPointICP(keypoint, mkeypoint,cloud,mcloud);
+	keyPointICP(keypoint,mkeypoint,cloud,mcloud);
 	vector<KeyPoint>  skeyPoint;
 	skeyPoint.resize((*keypoint).points.size());
 	int count = 0;//计数

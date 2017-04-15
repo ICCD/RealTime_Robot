@@ -106,6 +106,8 @@ void  keyPointICP(pcl::PointCloud<pcl::PointXYZ>::Ptr SpointCloud, pcl::PointClo
 *输出：4*4矩阵 ：Matrix4
 *用途：根据关键点对计算刚性变换矩阵
 **/
-Eigen::Matrix4f getMatrixfromPairPoint(PairPoint p) {
+//Eigen::Matrix4f getMatrixfromPairPoint(PairPoint p) {
+//	
+//}
 
-}
+

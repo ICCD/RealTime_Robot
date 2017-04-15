@@ -13,7 +13,7 @@ using namespace Eigen;
 using namespace Eigen::internal;
 using namespace Eigen::Architecture;
 
-float get_Distance(float*** grid_value, pcl::PointCloud<pcl::PointXYZ>::Ptr& cloud, pcl::PointXYZ &p1_key, pcl::PointXYZ &p2_key, const double min_x, const double min_y, const double min_z, const double max_x, const double max_y, const double max_z, const float resolution=0.02f)
+float get_Distance(Eigen::Matrix4f &key_transform,float*** grid_value, pcl::PointCloud<pcl::PointXYZ>::Ptr& cloud, pcl::PointXYZ &p1_key, pcl::PointXYZ &p2_key, const double min_x, const double min_y, const double min_z, const double max_x, const double max_y, const double max_z, const float resolution=0.02f)
 {
 	/*
 	参数列表说明：
@@ -84,6 +84,19 @@ float get_Distance(float*** grid_value, pcl::PointCloud<pcl::PointXYZ>::Ptr& clo
 			
 
 	}
+
+	Eigen::Matrix4f transform1 = Eigen::Matrix4f::Identity();	//平移
+	transform1(0, 3) = x_transform;
+	transform1(1, 3) = y_transform;
+	transform1(2, 3) = z_transform;
+
+	Eigen::Matrix4f transform2 = Eigen::Matrix4f::Identity();	//旋转(有一个回到原点的过程)
+	transform2(0, 0) = cos(best_theta);
+	transform2(1, 0) = sin(best_theta);
+	transform2(0, 1) = -sin(best_theta);
+	transform2(1, 1) = cos(best_theta);
+
+	Eigen::Matrix4f transform3 = Eigen::Matrix4f::Identity();	//尺度缩放
 
 	return distance_total;
 }
