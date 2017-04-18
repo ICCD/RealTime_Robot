@@ -73,37 +73,42 @@ int main()
     return 0;
 
 	*/
-	clock_t start = clock();
+	clock_t start = clock();		//计时开始
+
 	pcl::PointCloud<pcl::PointXYZ>::Ptr cloud(new pcl::PointCloud<pcl::PointXYZ>);
 	pcl::io::loadPCDFile("5.pcd", *cloud);
 
-	ModelPoint modelpoint = ModelPoint(cloud);
-	modelpoint.getArea(cloud);
-	modelpoint.getKeypoint();
+	ModelPoint modelpoint = ModelPoint(cloud);	//模型对象初始化
+	modelpoint.getArea(cloud);	//分割平面
+	modelpoint.getKeypoint();	//得到关键点
 
 	int temp = 0;
 
-	for (int i = 0; i < modelpoint.key_coordinates.size(); i++)
+	for (int i = 0; i < modelpoint.key_coordinates.size(); i++)		//依次构造所有的关键点对象
 	{
 		KeyPoint k_point(modelpoint.key_coordinates[i]);
 
-		k_point.get_Vector3D(modelpoint.surface);
-		for(int j=0;j<3;j++)
+		k_point.get_Vector3D(modelpoint.surface);				//得到三维向量
+		
+		/*
+		for(int j=0;j<3;j++)			
 			if (k_point.vector3D[j] > 0.16)
 			{
 				temp++;
 				break;
 			}
-		k_point.getOccupiedGrid(cloud);
-		k_point.get_TSDF(cloud);
-		modelpoint.keyPoint.push_back(k_point);
+		*/
+
+		k_point.getOccupiedGrid(cloud);						//得到占据网格
+		k_point.get_TSDF(cloud);							//得到tsdf
+		modelpoint.keyPoint.push_back(k_point);				//将关键点对象添加到模型对象中
 	}
 	std::cout << modelpoint.key_coordinates.size() <<"              "<< temp << std::endl;
 
 	
 
-	clock_t ends = clock();
-	cout << "Running Time : " << (double)(ends - start) / CLOCKS_PER_SEC << endl;
+	clock_t ends = clock();			//计时结束
+	cout << "Running Time : " << (double)(ends - start) / CLOCKS_PER_SEC << endl;			//毫秒化为秒，结果为预处理一个数据库模型的时间
 
 /*
 	modelpoint.getArea(cloud);
