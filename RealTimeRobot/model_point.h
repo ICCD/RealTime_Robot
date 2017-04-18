@@ -38,7 +38,7 @@ bool is_h_plane(pcl::ModelCoefficients &Coefficients)
 	double a, b, c, d, e, angle;
 	a = 1;
 	b = (Coefficients.values[0] * Coefficients.values[0]) + (Coefficients.values[1] * Coefficients.values[1]) + (Coefficients.values[2] * Coefficients.values[2]);
-	c = sqrt(a + b);
+	c = sqrt(b);
 	d = Coefficients.values[2];
 	e = d / c;
 	angle = acos(e);
@@ -55,7 +55,7 @@ bool is_v_plane(pcl::ModelCoefficients &Coefficients)
 	double a, b, c, d, e, angle;
 	a = 1;
 	b = (Coefficients.values[0] * Coefficients.values[0]) + (Coefficients.values[1] * Coefficients.values[1]) + (Coefficients.values[2] * Coefficients.values[2]);
-	c = sqrt(a + b);
+	c = sqrt(b);
 	d = Coefficients.values[2];
 	e = d / c;
 	angle = acos(e);
@@ -92,8 +92,8 @@ pcl::PointCloud<pcl::PointXYZ> ModelPoint::getKeypoint()
 	pcl::HarrisKeypoint3D<pcl::PointXYZ, pcl::PointXYZI, pcl::Normal> harris;
 	harris.setInputCloud(Mpoint);
 	harris.setNonMaxSupression(true);
-	harris.setRadius(0.04f);
-	harris.setThreshold(0.0012f);
+	harris.setRadius(0.05f);
+	harris.setThreshold(0.01f);
 	cloud_out->height = 1;
 	cloud_out->width = 100;
 	cloud_out->resize(cloud_out->height*Mpoint->width);
@@ -116,6 +116,7 @@ pcl::PointCloud<pcl::PointXYZ> ModelPoint::getKeypoint()
 		cloud_harris->push_back(point);
 	}
 	key_coordinates = *cloud_harris;
+	std::cout << cloud_harris->size() << std::endl;
 	return *cloud_harris;
 }
 
@@ -181,17 +182,22 @@ void ModelPoint::getArea(pcl::PointCloud<pcl::PointXYZ>::Ptr modelPoint)								
 		Surface s_temp;
 		s_temp.Area = chull.getTotalArea();		//得到面积
 		s_temp.Coefficients = *Coefficients;
-		if (is_h_plane(s_temp.Coefficients))							//判断垂直面或者水平面
+		
+		
+		if (is_h_plane(s_temp.Coefficients) && s_temp.Area >= 0.16)							//判断水平面
 		{
 			s_temp.IsVertical = 0;
 			surface.push_back(s_temp);
 		}
 
-		else if (is_v_plane(s_temp.Coefficients))
+		else if (is_v_plane(s_temp.Coefficients) && s_temp.Area >= 0.16)					//判断垂直面
 		{
 			s_temp.IsVertical = 1;
 			surface.push_back(s_temp);
 		}
+	
+		
+			
 
 
 

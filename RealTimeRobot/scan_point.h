@@ -132,13 +132,14 @@ void ScanPoint::get_Area(pcl::PointCloud<pcl::PointXYZ>::Ptr scanPoint)								/
 		Surface s_temp;
 		s_temp.Area = chull.getTotalArea();		//得到面积
 		s_temp.Coefficients = *Coefficients;
-		if (is_h_plane(s_temp.Coefficients))							//判断垂直面或者水平面
+
+		if (is_h_plane(s_temp.Coefficients) && s_temp.Area >= 0.16)							//判断水平面
 		{
 			s_temp.IsVertical = 0;
 			surface.push_back(s_temp);
 		}
 
-		else if (is_v_plane(s_temp.Coefficients))
+		else if (is_v_plane(s_temp.Coefficients) && s_temp.Area >= 0.16)					//判断垂直面
 		{
 			s_temp.IsVertical = 1;
 			surface.push_back(s_temp);

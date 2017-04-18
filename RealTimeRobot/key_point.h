@@ -1,21 +1,21 @@
 #pragma once
-#include <vector>
-#include <cstdlib>
+#include <Eigen/StdVector>
 #include <Eigen/Geometry>
 #include <pcl/PCLHeader.h>
-#include <Eigen/StdVector>
 #include <pcl/exceptions.h>
-#include <pcl/point_types.h>
 #include <pcl/point_traits.h>
-#include <pcl/octree/octree.h>
+#include <vector>
 #include <pcl/ModelCoefficients.h>
-#include <pcl/keypoints/harris_3D.h>
-#include <pcl/surface/concave_hull.h>
-#include <pcl/filters/extract_indices.h>
+#include <pcl/point_types.h>
 #include <pcl/sample_consensus/method_types.h>
 #include <pcl/sample_consensus/model_types.h>
 #include <pcl/segmentation/sac_segmentation.h>
+#include <pcl/surface/concave_hull.h>
+#include <pcl/filters/extract_indices.h>
 #include <pcl/visualization/pcl_visualizer.h>
+#include <cstdlib>
+#include <pcl/keypoints/harris_3D.h>
+#include <pcl/octree/octree.h>
 
 
 using namespace Eigen;
@@ -26,7 +26,7 @@ using namespace pcl;
 
 
 
-
+#define PI 3.1415926    //¶¨Òå¦Ğ
 
 double						//ÓÃÓÚÇó¿Õ¼äÖĞµãµ½Æ½Ãæ¾àÀëµÄº¯Êı
 getDistance(float v1, float v2, float v3, float v4, pcl::PointXYZ point)
@@ -37,13 +37,13 @@ getDistance(float v1, float v2, float v3, float v4, pcl::PointXYZ point)
 
 
 
-struct Surface {														//·Ö¸îÃæÀà
+struct Surface {														                                                                               // ·Ö¸îÃæÀà
 	double Area;			//Ãæ»ı
 	pcl::ModelCoefficients Coefficients;			//ÃæµÄ²ÎÊı		
-	bool IsVertical;		//´¹Ö±ÃæÖµÎª1£¬Ë®Æ½ÃæÎª0		ÔİÊ±²»ÓÃÓÚÆ¥Åä
+	bool IsVertical;		//´¹Ö±ÃæÖµÎª1£¬Ë®Æ½ÃæÎª0		
 };
 
-struct OccupiedGrid {
+struct OccupiedGrid {																																//Õ¼¾İÍø¸ñ
 	pcl::PointCloud<pcl::PointXYZ>::Ptr cloud;//µãÔÆ   ÊÇ·ñÓëModelPoint *Modelpoint µÈ¼Û£¿
 	float Border[6];                           //±ß½ç
 	int Number;                               //ÓĞµãµÄÌåËØµÄ¸öÊı		Õ¼¾İ±ÈÓÉ´ËÉ¸Ñ¡
@@ -71,8 +71,10 @@ public:
 KeyPoint::KeyPoint(pcl::PointXYZ point) {
 	Key_coordinate = point;
 	Occupiedgrid = OccupiedGrid();
-	pcl::PointCloud<pcl::PointXYZ>::Ptr pc(new pcl::PointCloud<pcl::PointXYZ>);
-	Occupiedgrid.cloud = pc;
+	pcl::PointCloud<pcl::PointXYZ>::Ptr cc(new pcl::PointCloud<pcl::PointXYZ>);
+	Occupiedgrid.cloud = cc;
+	for (int i = 0; i < 3; i++)
+		vector3D.push_back(0.16);
 }
 KeyPoint::KeyPoint() {};
 void KeyPoint::get_Vector3D(vector<Surface> &surface)					//»ñÈ¡ÈıÎ¬ÏòÁ¿			Ä¿Ç°¼òµ¥ÊµÏÖ
@@ -81,12 +83,12 @@ void KeyPoint::get_Vector3D(vector<Surface> &surface)					//»ñÈ¡ÈıÎ¬ÏòÁ¿			Ä¿Ç°¼
 	for (int i = 0; i < surface.size(); i++)
 	{
 		double distance = getDistance(surface[i].Coefficients.values[0], surface[i].Coefficients.values[1], surface[i].Coefficients.values[2], surface[i].Coefficients.values[3], Key_coordinate);//µãµ½Æ½Ãæ¾àÀë
-		if (surface[i].IsVertical == 0 && horizontal == 0 && distance <= 0.02)		//Ë®Æ½Ãæ Ö»ÓĞÒ»¸ö
+		if (surface[i].IsVertical == 0 && horizontal == 0 && distance <= 0.05)		//Ë®Æ½Ãæ Ö»ÓĞÒ»¸ö	µãµ½ÃæµÄ¾àÀëÉèÖÃÎª4ÀåÃ×
 		{
 			vector3D[0] = surface[i].Area;
 			horizontal++;
 		}
-		else if (surface[i].IsVertical == 0 && horizontal <= 1 && distance <= 0.02)			//´¹Ö±Ãæ×î¶àÁ½¸ö
+		else if (surface[i].IsVertical == 1 && vertical <= 1 && distance <= 0.02)			//´¹Ö±Ãæ×î¶àÁ½¸ö
 		{
 
 			vector3D[1 + vertical] = surface[i].Area;
@@ -207,6 +209,18 @@ void KeyPoint::get_TSDF(pcl::PointCloud<pcl::PointXYZ>::Ptr cloud, float resolut
 	std::vector<pcl::PointXYZ, Eigen::aligned_allocator<pcl::PointXYZ>> pointGrid;
 	int num_center = octree_temp.getOccupiedVoxelCenters(pointGrid);
 
+	for (int i = 1; i < pointGrid.size(); i++)
+	{
+		int x = (pointGrid[i].x - min_X) / 0.02;	//¼ä¾à
+		pointGrid[i].x = x;
+
+		int y = (pointGrid[i].y - min_Y) / 0.02;
+		pointGrid[i].y = y;
+
+		int z = (pointGrid[i].z - min_Z) / 0.02;
+		pointGrid[i].z = z;
+	}
+
 	for (int i = 0; i<12; i++)
 		for (int j = 0; j<12; j++)
 			for (int k = 0; k < 12; k++)
@@ -214,9 +228,9 @@ void KeyPoint::get_TSDF(pcl::PointCloud<pcl::PointXYZ>::Ptr cloud, float resolut
 				float _distance = 900;
 				for (int p = 1; p < pointGrid.size(); p++)
 				{
-					int x = (pointGrid[p].x - min_X) / 0.02;	//¼ä¾à
-					int y = (pointGrid[p].y - min_Y) / 0.02;
-					int z = (pointGrid[p].z - min_Z) / 0.02;
+					int x = i - pointGrid[p].x;
+					int y = j - pointGrid[p].y;
+					int z = k - pointGrid[p].z;
 					float temp = sqrt(x*x + y*y + z*z);
 					if (temp < _distance)
 						_distance = temp;

@@ -9,6 +9,7 @@
 #include <Eigen/Dense>
 #include <pcl/visualization/pcl_visualizer.h>
 #include <pcl/registration/icp.h>
+
 using namespace Eigen;
 using namespace Eigen::internal;
 using namespace Eigen::Architecture;
@@ -23,6 +24,7 @@ float get_Distance(Eigen::Matrix4f &key_transform,float*** grid_value, pcl::Poin
 	p2_key 为扫描点云中一个关键点坐标
 	min_x到max_z为tsdf的边界 即border中的6个值
 	*/
+
 	float x_transform = p2_key.x - p1_key.x;		//p2是扫面点云关键点
 	float y_transform = p2_key.y - p1_key.y;
 	float z_transform = p2_key.z - p1_key.z;
@@ -31,7 +33,7 @@ float get_Distance(Eigen::Matrix4f &key_transform,float*** grid_value, pcl::Poin
 	transform_mat(1, 3) = y_transform;
 	transform_mat(2, 3) = z_transform;
 	pcl::PointCloud<pcl::PointXYZ>::Ptr transformed_cloud(new pcl::PointCloud<pcl::PointXYZ>());
-	pcl::transformPointCloud(*cloud, *transformed_cloud, transform_mat);		//平移变换
+	pcl::transformPointCloud(*cloud, *transformed_cloud, transform_mat);		//平移变换，使两个关键点重合
 
 	float distance_total = 100000000;				//最后总距离
 	float distance_temp = 0;		//用于迭代36轮的每一轮的距离
@@ -39,28 +41,30 @@ float get_Distance(Eigen::Matrix4f &key_transform,float*** grid_value, pcl::Poin
 	float theta = M_PI / 18; // The angle of rotation in radians
 
 	int best_theta = 0;
+
+	Eigen::Matrix4f transform_1 = Eigen::Matrix4f::Identity();	//平移矩阵1：使占据网格平移到原点，在原点进行旋转
+	transform_1(0, 3) = -p1_key.x;
+	transform_1(1, 3) = -p1_key.y;
+	transform_1(2, 3) = -p1_key.z;
+
+	Eigen::Matrix4f transform_2 = Eigen::Matrix4f::Identity();	//旋转矩阵：每次旋转10度
+	transform_2(0, 0) = cos(theta);
+	transform_2(1, 0) = sin(theta);
+	transform_2(0, 1) = -sin(theta);
+	transform_2(1, 1) = cos(theta);
+
+	Eigen::Matrix4f transform_3 = Eigen::Matrix4f::Identity();	//平移矩阵，是占据网格在旋转后从原点
+	transform_3(0, 3) = -p1_key.x;
+	transform_3(1, 3) = -p1_key.y;
+	transform_3(2, 3) = -p1_key.z;
+
 	for (int i = 0; i < 36; i++)
 	{
 		//先旋转-
-		Eigen::Matrix4f transform_1 = Eigen::Matrix4f::Identity();	//平移矩阵
-		transform_1(0, 3) = -p1_key.x;
-		transform_1(1, 3) = -p1_key.y;
-		transform_1(2, 3) = -p1_key.z;
-		pcl::transformPointCloud(*transformed_cloud, *transformed_cloud, transform_1);		//平移变换
+		
+		pcl::transformPointCloud(*transformed_cloud, *transformed_cloud, transform_1*transform_2*transform_3);		//平移，旋转，平移
 
-		Eigen::Matrix4f transform_2 = Eigen::Matrix4f::Identity();	//旋转矩阵
-		transform_2(0, 0) = cos(theta);
-		transform_2(1, 0) = sin(theta);
-		transform_2(0, 1) = -sin(theta);
-		transform_2(1, 1) = cos(theta);
-		pcl::transformPointCloud(*transformed_cloud, *transformed_cloud, transform_2);		//旋转
-
-		transform_1(0, 3) = p1_key.x;
-		transform_1(1, 3) = p1_key.y;
-		transform_1(2, 3) = p1_key.z;
-		pcl::transformPointCloud(*transformed_cloud, *transformed_cloud, transform_2);		//平移变换
-
-																							//
+																							
 		pcl::octree::OctreePointCloud<pcl::PointXYZ>octree_temp(resolution);
 		octree_temp.defineBoundingBox(min_x, min_y, min_z, max_x, max_y, max_z);
 		octree_temp.setInputCloud(transformed_cloud);
@@ -68,7 +72,7 @@ float get_Distance(Eigen::Matrix4f &key_transform,float*** grid_value, pcl::Poin
 		std::vector<pcl::PointXYZ, Eigen::aligned_allocator<pcl::PointXYZ>> pointGrid;
 		int num_center = octree_temp.getOccupiedVoxelCenters(pointGrid);			//得到旋转后存在点云体素的中心 存放在pointGrid中
 
-		for (int p = 1; p < pointGrid.size(); p++)			//
+		for (int p = 1; p < pointGrid.size(); p++)			//注意p是从1开始的
 		{
 			int x = (cloud->points[p].x - min_x) / resolution;
 			int y = (cloud->points[p].y - min_y) / resolution;
@@ -85,10 +89,7 @@ float get_Distance(Eigen::Matrix4f &key_transform,float*** grid_value, pcl::Poin
 
 	}
 
-	Eigen::Matrix4f transform1 = Eigen::Matrix4f::Identity();	//平移
-	transform1(0, 3) = x_transform;
-	transform1(1, 3) = y_transform;
-	transform1(2, 3) = z_transform;
+	
 
 	Eigen::Matrix4f transform2 = Eigen::Matrix4f::Identity();	//旋转(有一个回到原点的过程)
 	transform2(0, 0) = cos(best_theta);
@@ -97,6 +98,15 @@ float get_Distance(Eigen::Matrix4f &key_transform,float*** grid_value, pcl::Poin
 	transform2(1, 1) = cos(best_theta);
 
 	Eigen::Matrix4f transform3 = Eigen::Matrix4f::Identity();	//尺度缩放
+	float change_size = p1_key.z / p2_key.z;
+	transform3(0, 0) = change_size;
+	transform3(1, 1) = change_size;
+	transform3(2, 2) = change_size;
+
+	
+	key_transform = transform_mat*transform_1*transform2*transform_3*transform3;		//两个关键点之间的变换矩阵	
+
+
 
 	return distance_total;
 }
