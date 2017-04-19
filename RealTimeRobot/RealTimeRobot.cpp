@@ -90,14 +90,14 @@ int main()
 
 		k_point.get_Vector3D(modelpoint.surface);				//得到三维向量
 		
-		/*
+		
 		for(int j=0;j<3;j++)			
 			if (k_point.vector3D[j] > 0.16)
 			{
 				temp++;
 				break;
 			}
-		*/
+		
 
 		k_point.getOccupiedGrid(cloud);						//得到占据网格
 		k_point.get_TSDF(cloud);							//得到tsdf
@@ -105,7 +105,11 @@ int main()
 	}
 	std::cout << modelpoint.key_coordinates.size() <<"              "<< temp << std::endl;
 
-	
+	Eigen::Matrix4f t_m = Eigen::Matrix4f::Identity();	
+	int k = 9;
+	int d = 9;
+	double score = get_Distance(t_m, modelpoint.keyPoint[k].grid_value, modelpoint.keyPoint[d].Occupiedgrid.cloud, modelpoint.keyPoint[k].Key_coordinate, modelpoint.keyPoint[d].Key_coordinate, modelpoint.keyPoint[k].Border[0], modelpoint.keyPoint[k].Border[1], modelpoint.keyPoint[k].Border[2], modelpoint.keyPoint[k].Border[3], modelpoint.keyPoint[k].Border[4], modelpoint.keyPoint[k].Border[5]);
+	cout << "score=" << score << endl;
 
 	clock_t ends = clock();			//计时结束
 	cout << "Running Time : " << (double)(ends - start) / CLOCKS_PER_SEC << endl;			//毫秒化为秒，结果为预处理一个数据库模型的时间

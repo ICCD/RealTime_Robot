@@ -56,7 +56,7 @@ public:
 	vector<double> vector3D;  //
 
 	float grid_value[12][12][12];		//向量场
-	float Border[6];		//tsdf的边界 ，并非占据网格边界
+	float Border[6];		//tsdf的边界 ，并非占据网格边界  ,在get_Vector()函数中会初始化
 
 	KeyPoint(pcl::PointXYZ point);  //构造函数
 	KeyPoint();						//默认构造函数
