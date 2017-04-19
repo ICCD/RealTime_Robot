@@ -112,7 +112,7 @@ float get_Distance(Eigen::Matrix4f &key_transform,float grid_value[12][12][12], 
 	transform3(2, 2) = change_size;
 
 	
-	key_transform = transform_mat*transform_1*transform2*transform_3*transform3;		//两个关键点之间的变换矩阵	
+	key_transform = transform3*transform_3*transform2*transform_1*transform_mat;		//两个关键点之间的变换矩阵
 
 
 	//cout << "best_theta" << best_theta << endl;
