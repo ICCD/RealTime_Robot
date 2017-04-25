@@ -24,7 +24,7 @@ using namespace Eigen::Architecture;
 
 int main()
 {
-	/*
+	
 	
 	//加载点云
 	pcl::PointCloud<pcl::PointXYZ>::Ptr cloud(new pcl::PointCloud<pcl::PointXYZ>);
@@ -32,39 +32,68 @@ int main()
 	pcl::PointCloud<pcl::PointXYZ>::Ptr mcloud(new pcl::PointCloud<pcl::PointXYZ>);
 	pcl::io::loadPCDFile("11351.pcd", *mcloud);
 
-	//Eigen::Matrix4f transform_mat = Eigen::Matrix4f::Identity();	//平移矩阵
-	//transform_mat(0, 3) = 0.8;
-	//transform_mat(1, 3) = 0.8;
-	//pcl::transformPointCloud(*mcloud, *mcloud, transform_mat);		//平移变换
+	Eigen::Matrix4f transform_mat = Eigen::Matrix4f::Identity();	//平移矩阵
+	transform_mat(0, 3) = 0.8;
+	transform_mat(1, 3) = 0.8;
+	pcl::transformPointCloud(*mcloud, *mcloud, transform_mat);		//平移变换
 	
 	//实例化ScanPoint对象，传入点云
 	ScanPoint scanpoint =  ScanPoint(cloud);
-
+	scanpoint.getKeypoint();
 	scanpoint.get_Area(cloud);
 
 	//实例化Model对象，传入点云
 	ModelPoint modelpoint = ModelPoint(mcloud);
+	modelpoint.getKeypoint();
+	modelpoint.getArea(mcloud);
 
- 	pcl::PointCloud<pcl::PointXYZ>::Ptr mkeypoint(new pcl::PointCloud<pcl::PointXYZ>);
-	*mkeypoint = modelpoint.getKeypoint();
-
-	//获取关键点
-	pcl::PointCloud<pcl::PointXYZ>::Ptr keypoint(new pcl::PointCloud<pcl::PointXYZ>);
-	*keypoint = scanpoint.getKeypoint();
-	keyPointICP(keypoint,mkeypoint,cloud,mcloud);
-	vector<KeyPoint>  skeyPoint;
-	skeyPoint.resize((*keypoint).points.size());
+	//keyPointICP(keypoint,mkeypoint,cloud,mcloud);/*测试展示用函数*/
+	scanpoint.keyPoint.resize((scanpoint.key_coordinates).points.size());
+	modelpoint.keyPoint.resize((modelpoint.key_coordinates).points.size());
 	int count = 0;//计数
-	for each (pcl::PointXYZ onepoint in *keypoint)
+	for each (pcl::PointXYZ onepoint in scanpoint.key_coordinates)
 	{
 		KeyPoint p = KeyPoint(onepoint);
 		p.getOccupiedGrid(cloud);
 		p.get_TSDF(cloud);
-		//p.get_Vector3D(scanpoint.surface);
-		skeyPoint[count++]  = p;
+		p.get_Vector3D(scanpoint.surface);
+		scanpoint.keyPoint[count++]  = p;
+		//std::cout << count << std::endl;
 	}
-	
+	count = 0;
+	for each (pcl::PointXYZ onepoint in modelpoint.key_coordinates)
+	{
+		KeyPoint p = KeyPoint(onepoint);
+		p.getOccupiedGrid(cloud);
+		p.get_TSDF(cloud);
+		p.get_Vector3D(modelpoint.surface);
+		modelpoint.keyPoint[count++] = p;
+	}
+	vector<PairPoint> pairpoint;
+	int point_num = 0;
+	for each (KeyPoint k in modelpoint.keyPoint)
+	{
+		int singlePointPair = 0;
+		for each (KeyPoint sk in scanpoint.keyPoint)
+		{
+			if (match_by_height(k.Key_coordinate, sk.Key_coordinate) && match_by_area(k.vector3D, sk.vector3D) && match_by_occupied(k.Occupiedgrid, sk.Occupiedgrid)) {
+				PairPoint p;
+				p.point_i = k;
+				p.point_j = sk;
+				pairpoint[point_num++] = p;
+				singlePointPair++;
+			}
+			//std::cout << match_by_height(k.Key_coordinate, sk.Key_coordinate) << match_by_area(k.vector3D, sk.vector3D) << match_by_occupied(k.Occupiedgrid, sk.Occupiedgrid) << std::endl;
+		}
+		/*if (singlePointPair >= 4) {
+			for (int i = 0; i < singlePointPair; i++) {
 
+			}
+			float get = get_Distance(k.grid_value, pairpoint[ppnum - singlePointPair].point_j.Occupiedgrid.cloud, k.Key_coordinate, pairpoint[ppnum - singlePointPair].point_j.Key_coordinate,
+				k.Border[0], k.Border[1], k.Border[2], k.Border[3], k.Border[4], k.Border[5]);
+
+		}*/
+	}
 	std::cout << "No Bug" << std::endl;
 	int o = 0;
 	while (true){
@@ -72,7 +101,8 @@ int main()
 	}
     return 0;
 
-	*/
+	
+	/*
 	clock_t start = clock();		//计时开始
 
 	pcl::PointCloud<pcl::PointXYZ>::Ptr cloud(new pcl::PointCloud<pcl::PointXYZ>);
@@ -113,6 +143,7 @@ int main()
 
 	clock_t ends = clock();			//计时结束
 	cout << "Running Time : " << (double)(ends - start) / CLOCKS_PER_SEC << endl;			//毫秒化为秒，结果为预处理一个数据库模型的时间
+	*/
 
 /*
 	modelpoint.getArea(cloud);
