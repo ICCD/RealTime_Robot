@@ -50,8 +50,8 @@ void ScanPoint::getKeypoint()
 	pcl::HarrisKeypoint3D<pcl::PointXYZ, pcl::PointXYZI, pcl::Normal> harris;
 	harris.setInputCloud(Spoint);
 	harris.setNonMaxSupression(true);
-	harris.setRadius(0.04f);
-	harris.setThreshold(0.0012f);
+	harris.setRadius(0.05f);
+	harris.setThreshold(0.01f);
 	cloud_out->height = 1;
 	cloud_out->width = 100;
 	cloud_out->resize(cloud_out->height*Spoint->width);
@@ -74,7 +74,7 @@ void ScanPoint::getKeypoint()
 		cloud_harris->push_back(point);
 	}
 	key_coordinates = *cloud_harris;
-	
+	std::cout << cloud_harris->size() << std::endl;
 }
 
 

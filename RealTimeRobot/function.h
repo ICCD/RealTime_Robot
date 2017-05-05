@@ -7,7 +7,9 @@
 #include <pcl/pcl_macros.h>
 #include <pcl/common/transforms.h>
 #include <pcl/io/pcd_io.h>
-
+#include <time.h>
+#include <iostream>
+#include"stdlib.h"
 
 #define PI 3.1415926    //定义π
 #define RANSAC_TIMES  100 //?
@@ -15,6 +17,7 @@
 using namespace Eigen;
 using namespace Eigen::internal;
 using namespace Eigen::Architecture;
+#define Random(x) (rand() % x) 
 
 //关键点对应后生成的点对
 struct PairPoint {
@@ -22,52 +25,89 @@ struct PairPoint {
 	KeyPoint point_j;
 };
 double pointdistance(pcl::PointXYZ p1, pcl::PointXYZ p2) {
+	
 	return sqrt((p1.x - p2.x)*(p1.x - p2.x) + (p1.y - p2.y)*(p1.y - p2.y) + (p1.z - p2.z)*(p1.z - p2.z));
 }
 
 ///<summary>
 ///匹配关系筛选函数
 ///</summary>
-void Ransac(vector<PairPoint> pairpoint,int ransac_times) {
-	int *count = new int[RANSAC_TIMES];
+Eigen::Matrix4f Ransac(vector<PairPoint> pairpoint,int ransac_times, pcl::PointCloud<pcl::PointXYZ>::Ptr cloud, pcl::PointCloud<pcl::PointXYZ>::Ptr mcloud) {
 	Eigen::Matrix4f matrix;
-	double minidistance = 0.0;
+	vector<Eigen::Matrix4f> em;
+	double minidistance = 10000000.0;
 	Eigen::Matrix4f bestMatrix;
-	for each (PairPoint pair in pairpoint)
+	int p=0;
+	int best_innum = 0;
+	for (int i = 0; i < pairpoint.size(); i++)
 	{
+		//随机取一对关键点
+		//int int_rand = rand() % pairpoint.size();
+		PairPoint pair = pairpoint[i];
+		// 根据该对关键点计算旋转矩阵
 		get_Distance(matrix, pair.point_i.grid_value, pair.point_j.Occupiedgrid.cloud, pair.point_i.Key_coordinate, pair.point_j.Key_coordinate,
-			pair.point_i.Border[0], pair.point_i.Border[1], pair.point_i.Border[2], pair.point_i.Border[3], pair.point_i.Border[4], pair.point_i.Border[5]);
-		//使用变换矩阵，如何对点进行变换？
-		//暂时使用点云进行变换操作，等待后期优化
-		pcl::PointCloud<pcl::PointXYZ>::Ptr cloud_i; // 创建点云
-		pcl::PointCloud<pcl::PointXYZ>::Ptr cloud_j;
-		(*cloud_i).width = pairpoint.size(); //设置点云宽度
-		(*cloud_i).height = 1; //设置点云高度
-		(*cloud_i).is_dense = false; //非密集型
-		(*cloud_i).points.resize((*cloud_i).width * (*cloud_i).height); //变形，无序
+				pair.point_i.Border[0], pair.point_i.Border[1], pair.point_i.Border[2], pair.point_i.Border[3], pair.point_i.Border[4], pair.point_i.Border[5]);
+		//旋转扫描点云的关键点集合
+			pcl::PointCloud<pcl::PointXYZ>::Ptr cloud_i(new pcl::PointCloud<pcl::PointXYZ>); // 创建点云,模型点云
+			pcl::PointCloud<pcl::PointXYZ>::Ptr cloud_j(new pcl::PointCloud<pcl::PointXYZ>);
+		
+			(*cloud_i).height = 1; //设置点云高度
+			(*cloud_i).width = pairpoint.size(); //设置点云宽度
+			(*cloud_i).points.resize((*cloud_i).width * (*cloud_i).height); //变形，无序
 
-		(*cloud_j).width = pairpoint.size(); //设置点云宽度
-		(*cloud_j).height = 1; //设置点云高度
-		(*cloud_j).is_dense = false; //非密集型
-		(*cloud_j).points.resize((*cloud_j).width * (*cloud_j).height); //变形，无序
-		int pointnum = 0;
-		for each (PairPoint pp in pairpoint)
-		{
-			(*cloud_i).points[pointnum] = pair.point_i.Key_coordinate;
-			(*cloud_j).points[pointnum++] = pair.point_j.Key_coordinate;
-		}
-		pcl::transformPointCloud(*cloud_i, *cloud_i, matrix);		//平移变换
-		double sum = 0.0;
-		for (int i = 0; i < (*cloud_i).points.size(); i++)
-		{
-			sum += pointdistance((*cloud_i).points[i], (*cloud_j).points[i]);
-		}
-		if (sum < minidistance) {
-			minidistance = sum;
-			bestMatrix = matrix;
-		}
-		//if(sum>max){} ///如果大于最大误差标准，去除该点对
+			(*cloud_j).width = pairpoint.size(); //设置点云宽度
+			(*cloud_j).height = 1; //设置点云高度
+			(*cloud_j).points.resize((*cloud_j).width * (*cloud_j).height); //变形，无序
+
+			int pointnum = 0;
+			for each (PairPoint pp in pairpoint)
+			{
+				(*cloud_i).points[pointnum] = pp.point_i.Key_coordinate;
+				(*cloud_j).points[pointnum++] = pp.point_j.Key_coordinate;
+			}
+			pcl::transformPointCloud(*cloud_j, *cloud_j, matrix);		//变换
+		//计算此次匹配的局内点数
+			Eigen::Matrix4f noUse;
+			int	inline_num = 0;
+		
+			for (int j = 0; j < pairpoint.size(); j++)
+			{
+				double dis = pointdistance((*cloud_i).points[j], (*cloud_j).points[j]);
+				//cout << dis << "ffffffffff" << endl;
+				float  des = get_Distance(noUse, pairpoint[j].point_i.grid_value, pairpoint[j].point_j.Occupiedgrid.cloud, pairpoint[j].point_i.Key_coordinate, pairpoint[j].point_j.Key_coordinate,
+					pairpoint[j].point_i.Border[0], pairpoint[j].point_i.Border[1], pairpoint[j].point_i.Border[2], pairpoint[j].point_i.Border[3], pairpoint[j].point_i.Border[4], pairpoint[j].point_i.Border[5]);
+	
+				if (dis<0.15&&des<100)
+				{
+					inline_num++;
+				}
+			}
+			if (inline_num > best_innum) {
+				bestMatrix = matrix;
+				best_innum = inline_num;
+				p = 0;
+				em.clear();
+			}else if(inline_num=best_innum) {
+				cout << p++ << "+++++++++++++++++++++++++++++" << endl;
+				em.push_back(matrix);
+			//pcl::transformPointCloud(*cloud, *cloud, matrix);
+			//pcl::io::savePCDFileASCII("mcloud1.pcd", *mcloud); //将点云保存到PCD文件中
+			//pcl::io::savePCDFileASCII("transformed_cloud1.pcd", *cloud);
+			//system("pcl_viewer.exe  mcloud1.pcd transformed_cloud1.pcd");
+			}
+			cout << inline_num << "================================" << endl;
+		
 	}
+	
+	pcl::PointCloud<pcl::PointXYZ>::Ptr gg(new pcl::PointCloud<pcl::PointXYZ>);
+	//for each (Eigen::Matrix4f var in em)
+	//{
+	//	pcl::transformPointCloud(*cloud, *gg, var);
+	//	pcl::io::savePCDFileASCII("mcloud1.pcd", *mcloud); //将点云保存到PCD文件中
+	//	pcl::io::savePCDFileASCII("transformed_cloud1.pcd", *gg);
+	//	system("pcl_viewer.exe  mcloud1.pcd transformed_cloud1.pcd");
+	//}
+		return bestMatrix;
 }
 
 void  keyPointICP(pcl::PointCloud<pcl::PointXYZ>::Ptr SpointCloud, pcl::PointCloud<pcl::PointXYZ>::Ptr mPointCloud , pcl::PointCloud<pcl::PointXYZ>::Ptr cloud, pcl::PointCloud<pcl::PointXYZ>::Ptr mcloud) {
@@ -132,7 +172,7 @@ bool match_by_area(vector<double> v1, vector<double> v2)
 }
 bool match_by_occupied(OccupiedGrid &o1, OccupiedGrid &o2)
 {
-	if (o2.Number == 0) return false;//defined by xueyu 解決除數為零問題
+	if (o2.Number == 0) return false;	//defined by xueyu 解決除數為零問題
 	float temp = o1.Number / o2.Number;
 	if (temp > 2 || temp < 0.5)
 		return false;

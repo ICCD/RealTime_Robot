@@ -62,8 +62,8 @@ float get_Distance(Eigen::Matrix4f &key_transform,float grid_value[12][12][12], 
 	for (int i = 0; i < 36; i++)
 	{
 		//先旋转-
-		
-		pcl::transformPointCloud(*transformed_cloud, *transformed_cloud, transform_3*transform_2*transform_1);		//平移，旋转，平移
+		if (i != 0)
+			pcl::transformPointCloud(*transformed_cloud, *transformed_cloud, transform_3*transform_2*transform_1);		//平移，旋转，平移
 
 		pcl::octree::OctreePointCloud<pcl::PointXYZ>octree_temp(resolution);
 		octree_temp.defineBoundingBox(min_x, min_y, min_z, max_x, max_y, max_z);
@@ -71,9 +71,9 @@ float get_Distance(Eigen::Matrix4f &key_transform,float grid_value[12][12][12], 
 		octree_temp.addPointsFromInputCloud();
 		std::vector<pcl::PointXYZ, Eigen::aligned_allocator<pcl::PointXYZ>> pointGrid;
 		int num_center = octree_temp.getOccupiedVoxelCenters(pointGrid);			//得到旋转后存在点云体素的中心 存放在pointGrid中
-		
 
-		
+
+
 
 		for (int p = 1; p < pointGrid.size(); p++)			//注意p是从1开始的
 		{
@@ -85,17 +85,18 @@ float get_Distance(Eigen::Matrix4f &key_transform,float grid_value[12][12][12], 
 			distance_temp += (grid_value[x][y][z] * grid_value[x][y][z] * grid_value[x][y][z] * grid_value[x][y][z]);
 		}
 		distance_temp /= (pointGrid.size() - 1);
-		cout << distance_temp << "distance_temp" << i << endl;
+			//cout << distance_temp << "distance_temp" << i << "      size:" << pointGrid.size() << endl;
 
 		if (distance_temp < distance_total)
 		{
 			distance_total = distance_temp;
-			best_theta = (i + 1);			//根据循环中的i确定旋转角度
-			//cout << distance_total << "distance_total" << endl;
+			best_theta = i*theta;			//根据循环中的i确定旋转角度
+											//cout << distance_total << "distance_total" << endl;
 		}
-			
+
 
 	}
+
 
 	
 
@@ -107,6 +108,8 @@ float get_Distance(Eigen::Matrix4f &key_transform,float grid_value[12][12][12], 
 
 	Eigen::Matrix4f transform3 = Eigen::Matrix4f::Identity();	//尺度缩放
 	float change_size = p1_key.z / p2_key.z;
+	if (change_size > 100 || change_size < 0.01)
+		//cout << "p1_key.z:  " <<p1_key.z<<"      p2_key.z:  "<<p2_key.z<< endl;
 	transform3(0, 0) = change_size;
 	transform3(1, 1) = change_size;
 	transform3(2, 2) = change_size;
