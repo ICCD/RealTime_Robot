@@ -147,7 +147,7 @@ void ModelPoint::getArea(pcl::PointCloud<pcl::PointXYZ>::Ptr modelPoint)								
 	// 必选
 	seg.setModelType(pcl::SACMODEL_PLANE);
 	seg.setMethodType(pcl::SAC_RANSAC);
-	seg.setMaxIterations(1000);
+	seg.setMaxIterations(150);
 	seg.setDistanceThreshold(0.005);
 
 	// 创建滤波器对象
