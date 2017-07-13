@@ -88,6 +88,29 @@ void  ModelPoint::getKeypoint()
 {
 	//boost::shared_ptr<pcl::visualization::PCLVisualizer> viewer(new pcl::visualization::PCLVisualizer);
 	//viewer->addPointCloud(Mpoint, "all_cloud");
+	pcl::PointCloud<pcl::PointXYZ>::Ptr cloud(new pcl::PointCloud<pcl::PointXYZ>);
+	pcl::io::loadPCDFile("Chair_025.pcd", *cloud);
+
+	Eigen::Matrix4f transform = Eigen::Matrix4f::Identity();	//尺度缩放
+	float change_size = 0.01;
+	transform(0, 0) = change_size;
+	transform(1, 1) = change_size;
+	transform(2, 2) = change_size;
+	pcl::transformPointCloud(*cloud, *cloud, transform);
+
+	//定义存储极值的两个点
+	pcl::PointXYZ minPt, maxPt;
+
+	//获取坐标极值
+	pcl::getMinMax3D(*cloud, minPt, maxPt);
+
+
+	//输出结果
+
+	cout << "长：" << maxPt.x - minPt.x << "米" << "   ";
+	cout << "宽：" << maxPt.y - minPt.y << "米" << "   ";
+	cout << "高：" << maxPt.z - minPt.z << "米" << endl;
+	//cout << (maxPt.x - minPt.x):(maxPt.y - minPt.y):(axPt.z - minPt.z);
 	pcl::PointCloud<pcl::PointXYZI>::Ptr cloud_out(new pcl::PointCloud<pcl::PointXYZI>);
 	pcl::HarrisKeypoint3D<pcl::PointXYZ, pcl::PointXYZI, pcl::Normal> harris;
 	harris.setInputCloud(Mpoint);
