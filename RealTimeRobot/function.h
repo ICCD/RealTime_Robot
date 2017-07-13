@@ -45,8 +45,7 @@ Eigen::Matrix4f Ransac(vector<PairPoint> pairpoint,int ransac_times, pcl::PointC
 		//int int_rand = rand() % pairpoint.size();
 		PairPoint pair = pairpoint[i];
 		// 根据该对关键点计算旋转矩阵
-		get_Distance(matrix, pair.point_i.grid_value, pair.point_j.Occupiedgrid.cloud, pair.point_i.Key_coordinate, pair.point_j.Key_coordinate,
-				pair.point_i.Border[0], pair.point_i.Border[1], pair.point_i.Border[2], pair.point_i.Border[3], pair.point_i.Border[4], pair.point_i.Border[5]);
+		get_Distance(matrix, pair.point_i,pair.point_j);
 		//旋转扫描点云的关键点集合
 			pcl::PointCloud<pcl::PointXYZ>::Ptr cloud_i(new pcl::PointCloud<pcl::PointXYZ>); // 创建点云,模型点云
 			pcl::PointCloud<pcl::PointXYZ>::Ptr cloud_j(new pcl::PointCloud<pcl::PointXYZ>);
@@ -74,8 +73,7 @@ Eigen::Matrix4f Ransac(vector<PairPoint> pairpoint,int ransac_times, pcl::PointC
 			{
 				double dis = pointdistance((*cloud_i).points[j], (*cloud_j).points[j]);
 				//cout << dis << "ffffffffff" << endl;
-				float  des = get_Distance(noUse, pairpoint[j].point_i.grid_value, pairpoint[j].point_j.Occupiedgrid.cloud, pairpoint[j].point_i.Key_coordinate, pairpoint[j].point_j.Key_coordinate,
-					pairpoint[j].point_i.Border[0], pairpoint[j].point_i.Border[1], pairpoint[j].point_i.Border[2], pairpoint[j].point_i.Border[3], pairpoint[j].point_i.Border[4], pairpoint[j].point_i.Border[5]);
+				float  des = get_Distance(noUse, pairpoint[j].point_i, pairpoint[j].point_j);
 	
 				if (dis<0.15&&des<100)
 				{
