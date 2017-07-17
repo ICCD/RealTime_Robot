@@ -22,6 +22,18 @@
 #include <key_point.h>
 #include <iostream>
 #include <math.h>
+#include <pcl\io\pcd_io.h>
+#include <pcl/point_cloud.h>
+#include <pcl/visualization/pcl_visualizer.h>
+#include <pcl/io/io.h>
+#include <pcl/keypoints/harris_3d.h>
+#include <cstdlib>
+#include <vector>
+#include <pcl/octree/octree.h>
+#include <Eigen/Dense>
+#include <pcl/visualization/pcl_visualizer.h>
+#include <pcl/registration/icp.h>
+#include <pcl/common/common.h>
 #define PI 3.1415926 
 
 
