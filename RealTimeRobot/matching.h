@@ -119,7 +119,7 @@ using namespace Eigen::Architecture;
 //	return distance_total;
 //}
 
-float get_Distance(Eigen::Matrix4f &key_transform, KeyPoint &p1_key, KeyPoint &p2_scan, const float resolution = 0.02f)
+float get_Distance(Eigen::Matrix4f &key_transform, KeyPoint &p1_key, KeyPoint &p2_scan, const float resolution = 0.01f)
 {
 	/*
 	KeyPoint &p1_key为模型点云一个关键点
@@ -174,16 +174,17 @@ float get_Distance(Eigen::Matrix4f &key_transform, KeyPoint &p1_key, KeyPoint &p
 		int num_center = octree_temp.getOccupiedVoxelCenters(pointGrid);			//得到旋转后存在点云体素的中心 存放在pointGrid中
 
 
-
+		int dim = 30;
 
 		for (int p = 1; p < pointGrid.size(); p++)			//注意p是从1开始的
 		{
 			int x = (pointGrid[p].x - p1_key.Border[0]) / resolution;
 			int y = (pointGrid[p].y - p1_key.Border[1]) / resolution;
 			int z = (pointGrid[p].z - p1_key.Border[2]) / resolution;
+			int idx = y * dim + z * dim * dim + x;
 			//cout << "grid_value" << grid_value[x][y][z] << endl;
 			//cout << x << "    " << y << "    " << z << "    " << grid_value[x][y][z] << endl;
-			distance_temp += (p1_key.grid_value[x][y][z] * p1_key.grid_value[x][y][z] * p1_key.grid_value[x][y][z] * p1_key.grid_value[x][y][z]);
+			distance_temp += (p1_key.grid_value[idx] * p1_key.grid_value[idx]);
 		}
 		distance_temp /= (pointGrid.size() - 1);
 		//cout << distance_temp << "distance_temp" << i << "      size:" << pointGrid.size() << endl;
@@ -219,3 +220,6 @@ float get_Distance(Eigen::Matrix4f &key_transform, KeyPoint &p1_key, KeyPoint &p
 																						//cout << "best_theta" << best_theta << endl;
 	return distance_total;
 }
+
+
+
