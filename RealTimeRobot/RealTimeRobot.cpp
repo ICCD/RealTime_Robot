@@ -80,8 +80,7 @@ int main()
 			cout << "111area:" << k.vector3D[0]<<k.vector3D[1]<<k.vector3D[2] << "  222area:" << sk.vector3D[0] << sk.vector3D[1] << sk.vector3D[2] << endl;
 			cout <<++pp<< endl;*/
 			Eigen::Matrix4f matrix;
-			bool keydistance = (get_Distance(matrix, k.grid_value, sk.Occupiedgrid.cloud, k.Key_coordinate, sk.Key_coordinate,
-				k.Border[0], k.Border[1], k.Border[2], k.Border[3], k.Border[4], k.Border[5]) <3);
+			bool keydistance = (get_Distance(matrix, k, sk) <3);
 			if (match_by_height(k.Key_coordinate, sk.Key_coordinate) && match_by_area(k.vector3D, sk.vector3D) && match_by_occupied(k.Occupiedgrid, sk.Occupiedgrid)&& keydistance) {
 				PairPoint p;
 				p.point_i = k;

@@ -101,8 +101,8 @@ void  ModelPoint::getKeypoint()
 	//boost::shared_ptr<pcl::visualization::PCLVisualizer> viewer(new pcl::visualization::PCLVisualizer);
 	//viewer->addPointCloud(Mpoint, "all_cloud");
 	pcl::PointCloud<pcl::PointXYZ>::Ptr cloud(new pcl::PointCloud<pcl::PointXYZ>);
-	pcl::io::loadPCDFile("Chair_025.pcd", *cloud);
-
+	//pcl::io::loadPCDFile("Chair_025.pcd", *cloud);
+	cloud = Mpoint;
 	Eigen::Matrix4f transform = Eigen::Matrix4f::Identity();	//尺度缩放
 	float change_size = 0.01;
 	transform(0, 0) = change_size;
@@ -154,6 +154,7 @@ void  ModelPoint::getKeypoint()
 	std::cout << cloud_harris->size() << std::endl;
 
 }
+
 
 
 
