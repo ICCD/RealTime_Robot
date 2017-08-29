@@ -24,9 +24,6 @@
     <ClInclude Include="targetver.h">
       <Filter>头文件</Filter>
     </ClInclude>
-    <ClInclude Include="feature.h">
-      <Filter>头文件</Filter>
-    </ClInclude>
     <ClInclude Include="model_point.h">
       <Filter>头文件</Filter>
     </ClInclude>
@@ -39,6 +36,9 @@
     <ClInclude Include="key_point.h">
       <Filter>头文件</Filter>
     </ClInclude>
+    <ClInclude Include="function.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="stdafx.cpp">
@@ -47,5 +47,10 @@
     <ClCompile Include="RealTimeRobot.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <CudaCompile Include="kernel.cu">
+      <Filter>源文件</Filter>
+    </CudaCompile>
   </ItemGroup>
 </Project>
